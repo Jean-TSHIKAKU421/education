@@ -192,16 +192,16 @@ class ClasseDetailPage {
     }
 
     async ouvrirModalClasses() {
-        const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-classes'; overlay.style.zIndex = '1100';
-        overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
-        overlay.innerHTML = `<div style="text-align:center;padding:3rem"><div class="spinner"></div></div>`;
-        document.body.appendChild(overlay);
-        try {
-            const instId = this.classe?.institution_id; const url = instId ? `/classes/institution/${instId}` : '/classes';
-            const classesRes = await apiGet(url); const classes = classesRes.data || [];
-            const itemsHTML = classes.length ? classes.map(c => `<div class="ui-card card-hoverable" onclick="document.getElementById('aj-classe-nom').value='${c.nom_classe.replace(/'/g,"\\'")}';document.getElementById('aj-classe-id').value='${c.id}';document.getElementById('modal-classes').remove()"><div style="padding:0.8rem 1rem;display:flex;align-items:center;gap:0.6rem"><i class="fas fa-users" style="color:var(--primary);font-size:1.2rem;flex-shrink:0"></i><span style="font-size:0.9rem;font-weight:500">${c.nom_classe}</span></div></div>`).join('') : '<p style="text-align:center;color:var(--text-muted);padding:1rem">Aucune classe trouvée</p>';
-            overlay.innerHTML = await CL.render('ui/list-modal', { id: 'modal-classes', icon: 'graduation-cap', title: 'Choisir une classe', items: itemsHTML });
-        } catch(e) { overlay.innerHTML = `<div class="modal" style="max-width:380px;text-align:center"><div class="modal-body" style="padding:2rem"><i class="fas fa-exclamation-circle" style="font-size:2.5rem;color:var(--danger)"></i><h3>Erreur</h3><p>${e.message}</p><button class="btn btn-primary" style="margin-top:1rem;width:100%" onclick="document.getElementById('modal-classes').remove()">OK</button></div></div>`; }
+            const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-classes'; overlay.style.zIndex = '1100';
+            overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+            overlay.innerHTML = `<div style="text-align:center;padding:3rem"><div class="spinner"></div></div>`;
+            document.body.appendChild(overlay);
+            try {
+                const instId = this.classe?.institution_id; const url = instId ? `/classes/institution/${instId}` : '/classes';
+                const classesRes = await apiGet(url); const classes = classesRes.data || [];
+                overlay.innerHTML = `<div class="modal" style="max-width:420px;max-height:80vh;overflow-y:auto" onclick="event.stopPropagation()"><div class="modal-header"><h3><i class="fas fa-graduation-cap"></i> Choisir une classe</h3><button class="modal-close" onclick="document.getElementById('modal-classes').remove()"><i class="fas fa-times"></i></button></div>
+        <div class="modal-body" style="display:flex;flex-direction:column;gap:0.5rem;padding-bottom:0.5rem">${classes.length?classes.map(c=>`<div class="ui-card card-hoverable" onclick="document.getElementById('aj-classe-nom').value='${c.nom_classe.replace(/'/g,"\\'")}';document.getElementById('aj-classe-id').value='${c.id}';document.getElementById('modal-classes').remove()"><div style="padding:0.8rem 1rem;display:flex;align-items:center;gap:0.6rem"><i class="fas fa-users" style="color:var(--primary);font-size:1.2rem;flex-shrink:0"></i><span style="font-size:0.9rem;font-weight:500">${c.nom_classe}</span></div></div>`).join(''):'<p style="text-align:center;color:var(--text-muted);padding:1rem">Aucune classe trouvée</p>'}</div></div>`;
+            } catch(e) { overlay.innerHTML = `<div class="modal" style="max-width:380px;text-align:center"><div class="modal-body" style="padding:2rem"><i class="fas fa-exclamation-circle" style="font-size:2.5rem;color:var(--danger)"></i><h3>Erreur</h3><p>${e.message}</p><button class="btn btn-primary" style="margin-top:1rem;width:100%" onclick="document.getElementById('modal-classes').remove()">OK</button></div></div>`; }
     }
 
     async ouvrirModalLien(prefix) {
