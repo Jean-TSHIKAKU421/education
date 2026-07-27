@@ -1,4 +1,4 @@
-USE school_management;
+USE education;
 
 INSERT INTO institutions (nom, niveau) VALUES
 ('Complexe Scolaire Avenir', 'maternelle'),

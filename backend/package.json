@@ -1,5 +1,5 @@
 {
-  "name": "school-management-backend",
+  "name": "education-backend",
   "version": "1.0.0",
   "description": "Backend pour plateforme de gestion scolaire",
   "main": "server.js",
