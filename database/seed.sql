@@ -1,39 +1,62 @@
 USE education;
 
-INSERT INTO institutions (nom, niveau) VALUES
-('Complexe Scolaire Avenir', 'maternelle'),
-('Complexe Scolaire Avenir', 'primaire'),
-('Complexe Scolaire Avenir', 'secondaire');
+-- Déchargement des données de la table `administrateurs`
 
-INSERT INTO options_secondaire (code, nom) VALUES
-('CG','Commerciale et Gestion'), ('MG','Mécanique Générale'),
-('BC','Bio-Chimie'), ('MP','Math-Physique'), ('PE','Pédagogie');
+INSERT INTO `administrateurs` (`id`, `username`, `password_hash`, `nom_complet`, `role`) VALUES
+(1, 'admin', '$2b$10$rQZ5qpT8qFqGJqGTqGNJZuNhXV7qGJoGZHvGqGBqqMGzMGzMGMzMG', 'Administrateur Principal', 'super_admin');
 
--- Maternelle
-INSERT INTO classes (institution_id, nom_classe, niveau_detail, capacite) VALUES
-(1,'1ère Maternelle','1ère',25),(1,'2ème Maternelle','2ème',25),(1,'3ème Maternelle','3ème',25);
+-- --------------------------------------------------------
+-- Déchargement des données de la table `institutions`
 
--- Primaire
-INSERT INTO classes (institution_id, nom_classe, niveau_detail, capacite) VALUES
-(2,'1ère Primaire','1ère',35),(2,'2ème Primaire','2ème',35),(2,'3ème Primaire','3ème',35),
-(2,'4ème Primaire','4ème',35),(2,'5ème Primaire','5ème',35),(2,'6ème Primaire','6ème',35);
+INSERT INTO `institutions` (`nom`, `niveau`, `adresse`, `telephone`, `email`, `logo`, `annee_scolaire`) VALUES
+('Complexe Scolaire Avenir', 'maternelle', 'Golf-Lido/Lubumbashi/RDC', '+243999543276', 'jtshikaku@gmail.com', '/assets/logo-ecole.png', '2026-2027'),
+('Complexe Scolaire Avenir', 'primaire', 'Golf-Lido/Lubumbashi/RDC', '+243999543276', 'jtshikaku@gmail.com', '/assets/logo-ecole.png', '2026-2027'),
+('Complexe Scolaire Avenir', 'secondaire', 'Golf-Lido/Lubumbashi/RDC', '+243999543276', 'jtshikaku@gmail.com', '/assets/logo-ecole.png', '2026-2027');
 
--- Secondaire : 7è, 8è EB
-INSERT INTO classes (institution_id, nom_classe, niveau_detail, capacite) VALUES
-(3,'7ème E.B','7ème',40),(3,'8ème E.B','8ème',40);
+-- --------------------------------------------------------
+-- Déchargement des données de la table `options_secondaire`
 
--- Secondaire : 1ère à 4ème avec options (2 options ici : CG et PE, tu peux adapter)
-INSERT INTO classes (institution_id, nom_classe, niveau_detail, option_id, capacite) VALUES
-(3,'1ère Commerciale et Gestion','1ère',1,35),(3,'1ère Pédagogie','1ère',5,30),
-(3,'2ème Commerciale et Gestion','2ème',1,35),(3,'2ème Pédagogie','2ème',5,30),
-(3,'3ème Commerciale et Gestion','3ème',1,35),(3,'3ème Pédagogie','3ème',5,30),
-(3,'4ème Commerciale et Gestion','4ème',1,35),(3,'4ème Pédagogie','4ème',5,30);
+INSERT INTO `options_secondaire` (`code`, `nom`, `description`) VALUES
+('CG', 'Commerciale et Gestion', NULL),
+('MG', 'Mécanique Générale', NULL),
+('BC', 'Bio-Chimie', NULL),
+('MP', 'Math-Physique', NULL),
+('PE', 'Pédagogie', NULL);
 
--- Élèves
-INSERT INTO eleves (matricule, nom, prenom, date_naissance, genre, classe_id, date_inscription) VALUES
-('ELV001','Dupont','Jean','2018-05-15','M',1,'2024-09-01'),
-('ELV002','Kabila','Sarah','2018-08-22','F',1,'2024-09-01'),
-('ELV003','Mutombo','David','2014-03-10','M',4,'2024-09-01'),
-('ELV004','Ngoy','Grace','2014-12-05','F',4,'2024-09-01'),
-('ELV005','Lumumba','Patrick','2008-06-18','M',12,'2024-09-01'),
-('ELV006','Tshisekedi','Anne','2008-01-30','F',12,'2024-09-01');
+-- --------------------------------------------------------
+-- Déchargement des données de la table `classes`
+
+INSERT INTO `classes` (`institution_id`, `nom_classe`, `niveau_detail`, `option_id`, `capacite`) VALUES
+(1, '1ère Maternelle', '1ère', NULL, 25),
+(1, '2ème Maternelle', '2ème', NULL, 25),
+(1, '3ème Maternelle', '3ème', NULL, 25),
+(2, '1ère Primaire', '1ère', NULL, 35),
+(2, '2ème Primaire', '2ème', NULL, 35),
+(2, '3ème Primaire', '3ème', NULL, 35),
+(2, '4ème Primaire', '4ème', NULL, 35),
+(2, '5ème Primaire', '5ème', NULL, 35),
+(2, '6ème Primaire', '6ème', NULL, 35),
+(3, '7ème E.B', '7ème', NULL, 40),
+(3, '8ème E.B', '8ème', NULL, 40),
+(3, '1ère Commerciale et Gestion','1ère',1,50),
+(3, '1ère Mécanique Générale','1ère',2,50),
+(3, '1ère Bio-Chimie','1ère',3,50),
+(3, '1ère Math-Physique','1ère',4,50),
+(3, '1ère Pédagogie Générale','1ère',5,50),
+(3, '2ère Commerciale et Gestion','2ère',1,50),
+(3, '2ère Mécanique Générale','2ère',2,50),
+(3, '2ère Bio-Chimie','2ème',3,50),
+(3, '2ère Math-Physique','2ème',4,50),
+(3, '2ère Pédagogie Générale','2ère',5,50),
+(3, '3ère Commerciale et Gestion','3ème',1,50),
+(3, '3ère Mécanique Générale','3ème',2,50),
+(3, '3ère Bio-Chimie','3ème',3,50),
+(3, '3ère Math-Physique','3ème',4,50),
+(3, '3ère Pédagogie Générale','3ère',5,50),
+(3, '4ère Commerciale et Gestion','4ème',1,50),
+(3, '4ère Mécanique Générale','4ème',2,50),
+(3, '4ère Bio-Chimie','4ème',3,50),
+(3, '4ère Math-Physique','4ème',4,50),
+(3, '4ère Pédagogie Générale','4ère',5,50);
+
+-- --------------------------------------------------------
