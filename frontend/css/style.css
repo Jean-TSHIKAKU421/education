@@ -70,8 +70,8 @@ a { text-decoration: none; color: inherit; }
 .badge-warning { background: var(--warning-light); color: var(--warning); }
 .badge-danger { background: var(--danger-light); color: var(--danger); }
 
-.modal-overlay { position: fixed; inset: 0; background: var(--modal-overlay); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; animation: fadeIn 0.15s; }
-.modal { background: var(--card-bg); backdrop-filter: blur(30px); border: 1px solid var(--border); border-radius: var(--radius-xl); width: 100%; max-width: 500px; box-shadow: 0 16px 48px rgba(0,0,0,0.6); animation: slideUp 0.2s; }
+.modal-overlay { position: fixed; inset: 0; background: var(--modal-overlay); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 1rem; animation: fadeIn 0.15s;overflow-y: scroll; }
+.modal { background: var(--card-bg); backdrop-filter: blur(30px); border: 1px solid var(--border); border-radius: var(--radius-xl); width: 100%; max-width: 500px; box-shadow: 0 16px 48px rgba(0,0,0,0.6); animation: slideUp 0.2s;overflow-y: scroll; }
 .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem 0; }
 .modal-header h3 { font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 0.4rem; }
 .modal-close { width: 34px; height: 34px; border-radius: 50%; background: var(--input-bg); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition); }
