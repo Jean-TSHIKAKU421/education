@@ -174,6 +174,21 @@ body.light .badge { box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
 .contact-clickable:hover { background: var(--primary-light); }
 .contact-clickable:hover .contact-valeur { color: var(--primary); }
 @keyframes pulse { 0%,100% { opacity:1;transform:scale(1) } 50% { opacity:0.6;transform:scale(1.1) } }
+.calendrier-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.calendrier-day-name { text-align: center; font-size: 0.7rem; font-weight: 600; color: var(--text-muted); padding: 0.3rem; }
+.calendrier-day { text-align: center; padding: 0.5rem 0.2rem; border-radius: 6px; font-size: 0.75rem; font-weight: 500; cursor: default; transition: var(--transition); }
+.calendrier-day:hover { transform: scale(1.1); z-index: 1; }
+.calendrier-day.present { background: var(--success); color: white; }
+.calendrier-day.absent { background: var(--danger); color: white; }
+.calendrier-day.retard { background: var(--warning); color: white; }
+.calendrier-day.justifie { background: var(--info); color: white; }
+.calendrier-day.today { box-shadow: 0 0 0 2px var(--primary); }
+.calendrier-day.empty { background: transparent; }
+.calendrier-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 3px; }
+.calendrier-dot.present { background: var(--success); }
+.calendrier-dot.absent { background: var(--danger); }
+.calendrier-dot.retard { background: var(--warning); }
+.calendrier-dot.justifie { background: var(--info); }
 
 @media (max-width: 768px) { .profil-grid-top { grid-template-columns: 1fr; } .responsables-grid { grid-template-columns: 1fr; } }
 

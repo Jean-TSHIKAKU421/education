@@ -21,11 +21,22 @@ class ProfilElevePage {
   </div>
   <div class="profil-section" style="margin-top:1rem"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><h3 style="margin:0"><i class="fas fa-users"></i> Responsables</h3><button class="btn btn-sm btn-primary" onclick="profilEleve.ouvrirModalAjouterResponsable(${this.id})"><i class="fas fa-plus"></i> Ajouter</button></div><div class="responsables-grid">${respHTML||'<p style="color:var(--text-muted);text-align:center;padding:1rem;grid-column:1/-1">Aucun responsable enregistré</p>'}</div></div>
   <div class="profil-section" style="margin-top:1rem"><h3><i class="fas fa-fingerprint"></i> Empreinte digitale</h3><div style="text-align:center;padding:1rem">${e.empreinte_digitale?`<i class="fas fa-check-circle" style="font-size:3rem;color:var(--success);display:block;margin-bottom:0.5rem"></i><p style="color:var(--success);font-weight:600">Empreinte enregistrée</p><p style="color:var(--text-muted);font-size:0.8rem">ID: ${e.empreinte_digitale}</p><button class="btn btn-sm btn-danger" style="margin-top:0.75rem" onclick="profilEleve.confirmerSuppressionEmpreinte(${e.id})"><i class="fas fa-trash"></i> Supprimer</button>`:`<i class="fas fa-fingerprint" style="font-size:3rem;color:var(--text-muted);display:block;margin-bottom:0.5rem"></i><p style="color:var(--text-muted)">Aucune empreinte</p><button class="btn btn-sm btn-primary" style="margin-top:0.75rem" onclick="profilEleve.enregistrerEmpreinte(${e.id})"><i class="fas fa-fingerprint"></i> Scanner</button>`}</div></div>
-  <div class="profil-section" style="margin-top:1rem"><h3><i class="fas fa-chart-bar"></i> Fréquentation</h3>
-    <div style="text-align:center;padding:1rem 0"><div style="width:140px;height:140px;border-radius:50%;background:conic-gradient(${tauxColor} ${taux}%,var(--input-bg) ${taux}%);display:flex;align-items:center;justify-content:center;margin:0 auto"><div style="width:105px;height:105px;border-radius:50%;background:var(--glass);display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:2rem;font-weight:800;color:${tauxColor}">${taux}%</span><span style="font-size:0.7rem;color:var(--text-muted)">présence</span></div></div></div>
-    <div style="display:flex;gap:1rem;justify-content:center;margin-top:0.5rem"><span style="text-align:center"><i class="fas fa-check-circle" style="color:var(--success);font-size:1.2rem"></i><div style="font-weight:700">${e.stats_presence?.presents||0}</div><div style="font-size:0.7rem;color:var(--text-muted)">présences</div></span><span style="text-align:center"><i class="fas fa-times-circle" style="color:var(--danger);font-size:1.2rem"></i><div style="font-weight:700">${e.stats_presence?.absents||0}</div><div style="font-size:0.7rem;color:var(--text-muted)">absences</div></span><span style="text-align:center"><i class="fas fa-clock" style="color:var(--warning);font-size:1.2rem"></i><div style="font-weight:700">${e.stats_presence?.retards||0}</div><div style="font-size:0.7rem;color:var(--text-muted)">retards</div></span></div>
-    ${derniersJours?`<div style="margin-top:1rem"><h4 style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.5rem">Derniers jours</h4><div class="presence-calendar">${derniersJours}</div></div>`:''}
-  </div></div>`;
+    <div class="profil-section" style="margin-top:1rem;grid-column:1/-1">
+    <h3><i class="fas fa-chart-bar"></i> Fréquentation</h3>
+    <div style="text-align:center;padding:1rem 0">
+        <div style="width:140px;height:140px;border-radius:50%;background:conic-gradient(${tauxColor} ${taux}%,var(--input-bg) ${taux}%);display:flex;align-items:center;justify-content:center;margin:0 auto">
+        <div style="width:105px;height:105px;border-radius:50%;background:var(--glass);display:flex;flex-direction:column;align-items:center;justify-content:center">
+            <span style="font-size:2rem;font-weight:800;color:${tauxColor}">${taux}%</span><span style="font-size:0.7rem;color:var(--text-muted)">présence</span>
+        </div>
+        </div>
+    </div>
+    <div style="display:flex;gap:1rem;justify-content:center;margin-top:0.5rem">
+        <span style="text-align:center"><i class="fas fa-check-circle" style="color:var(--success);font-size:1.2rem"></i><div style="font-weight:700">${e.stats_presence?.presents||0}</div><div style="font-size:0.7rem;color:var(--text-muted)">présences</div></span>
+        <span style="text-align:center"><i class="fas fa-times-circle" style="color:var(--danger);font-size:1.2rem"></i><div style="font-weight:700">${e.stats_presence?.absents||0}</div><div style="font-size:0.7rem;color:var(--text-muted)">absences</div></span>
+        <span style="text-align:center"><i class="fas fa-clock" style="color:var(--warning);font-size:1.2rem"></i><div style="font-weight:700">${e.stats_presence?.retards||0}</div><div style="font-size:0.7rem;color:var(--text-muted)">retards</div></span>
+    </div>
+    ${this.genererCalendrier(e.presences||[])}
+    </div>`;
             window.profilEleve = this;
         } catch(e) { m.innerHTML = `<div style="text-align:center;padding:3rem"><i class="fas fa-exclamation-triangle" style="font-size:2.5rem;color:var(--text-muted)"></i><p>${e.message}</p></div>`; }
     }
@@ -61,6 +72,34 @@ class ProfilElevePage {
         if (!nom || !prenom || !date_naissance || !genre) { this.ouvrirAlert('Champs requis', 'Veuillez remplir tous les champs obligatoires.', 'warning'); return; }
         try { const r = await apiPut(`/eleves/${this.id}`, { nom, prenom, date_naissance, genre, adresse }); if (r.success) { document.getElementById('modal-modifier')?.remove(); await this.render(); } else this.ouvrirAlert('Erreur', r.message||'Échec','error'); }
         catch(e) { this.ouvrirAlert('Erreur', e.message, 'error'); }
+    }
+
+    genererCalendrier(presences) {
+        const now = new Date();
+        const mois = now.getMonth();
+        const annee = now.getFullYear();
+        const moisNoms = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+        const joursDansMois = new Date(annee, mois+1, 0).getDate();
+        const premierJour = new Date(annee, mois, 1).getDay() || 7; // Lundi=1
+        const presencesMap = {};
+        presences.forEach(p => { presencesMap[p.date_presence.split('T')[0]] = p.statut; });
+
+        const statsParJour = { present: 'Présent', absent: 'Absent', retard: 'Retard', justifie: 'Justifié' };
+
+        let html = `<div style="margin-top:1.5rem"><h4 style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:0.75rem;text-align:center">${moisNoms[mois]} ${annee}</h4>`;
+        html += `<div class="calendrier-grid"><div class="calendrier-day-name">Lun</div><div class="calendrier-day-name">Mar</div><div class="calendrier-day-name">Mer</div><div class="calendrier-day-name">Jeu</div><div class="calendrier-day-name">Ven</div><div class="calendrier-day-name">Sam</div><div class="calendrier-day-name">Dim</div>`;
+
+        for (let i = 1; i < premierJour; i++) { html += `<div class="calendrier-day empty"></div>`; }
+        for (let j = 1; j <= joursDansMois; j++) {
+            const dateStr = `${annee}-${String(mois+1).padStart(2,'0')}-${String(j).padStart(2,'0')}`;
+            const statut = presencesMap[dateStr] || '';
+            const sc = statut === 'present' ? 'present' : statut === 'absent' ? 'absent' : statut === 'retard' ? 'retard' : statut === 'justifie' ? 'justifie' : '';
+            const tooltip = statut ? `${j} ${moisNoms[mois]} : ${statsParJour[statut]||statut}` : `${j} ${moisNoms[mois]}`;
+            const today = new Date().toDateString() === new Date(dateStr).toDateString() ? 'today' : '';
+            html += `<div class="calendrier-day ${sc} ${today}" title="${tooltip}">${j}</div>`;
+        }
+        html += `</div><div style="display:flex;gap:1rem;justify-content:center;margin-top:0.75rem;font-size:0.7rem"><span><span class="calendrier-dot present"></span> Présent</span><span><span class="calendrier-dot absent"></span> Absent</span><span><span class="calendrier-dot retard"></span> Retard</span><span><span class="calendrier-dot justifie"></span> Justifié</span></div></div>`;
+        return html;
     }
 
     // ==================== RESPONSABLE ====================
