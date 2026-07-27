@@ -1,0 +1,13 @@
+<tr class="clickable-row" onclick="${onclick || `router.navigate('eleves/${id}')`}">
+  <td><strong>${matricule}</strong></td>
+  <td>${nom}</td>
+  <td>${prenom}</td>
+  <td><span class="badge badge-info"><i class="fas fa-${genre === 'M' ? 'mars' : 'venus'}"></i> ${genre === 'M' ? 'M' : 'F'}</span></td>
+  <td>${classe || '-'}</td>
+  <td>${statut ? `<span class="badge badge-${statut === 'present' ? 'success' : statut === 'absent' ? 'danger' : 'warning'}"><i class="fas fa-${statut === 'present' ? 'check' : statut === 'absent' ? 'times' : 'clock'}"></i> ${statut}</span>` : '-'}</td>
+  <td class="actions-cell">
+    <button class="btn btn-sm btn-primary" onclick="event.stopPropagation();router.navigate('eleves/${id}')" title="Voir"><i class="fas fa-eye"></i></button>
+    <button class="btn btn-sm btn-warning" onclick="event.stopPropagation();modifierEleve(${id})" title="Modifier"><i class="fas fa-edit"></i></button>
+    <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();supprimerEleve(${id})" title="Supprimer"><i class="fas fa-trash"></i></button>
+  </td>
+</tr>

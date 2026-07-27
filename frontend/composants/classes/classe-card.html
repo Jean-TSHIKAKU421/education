@@ -1,0 +1,22 @@
+<div class="ui-card card-hoverable" onclick="${onclick || `router.navigate('eleves/classe/${id}')`}">
+  <div class="card-icon-wrapper" style="background:${couleur || 'linear-gradient(135deg, #667eea, #764ba2)'}"><i class="fas fa-${icon || 'users'}"></i></div>
+  <div class="card-body">
+    <div class="card-header">
+      <h4 class="card-title">${nom_classe}</h4>
+      <span class="badge badge-info"><i class="fas fa-layer-group"></i> ${niveau}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.75rem">
+      <div><i class="fas fa-user-graduate"></i> <strong>${nb_eleves || 0}</strong> élèves</div>
+      <div><i class="fas fa-user-check" style="color:var(--success)"></i> <strong>${presents || 0}</strong> présents</div>
+      <div><i class="fas fa-user-times" style="color:var(--danger)"></i> <strong>${absents || 0}</strong> absents</div>
+      <div><i class="fas fa-chart-line"></i> <strong>${taux_presence || 0}%</strong></div>
+    </div>
+    <div style="margin-top:0.75rem;background:var(--border);border-radius:10px;height:6px;overflow:hidden">
+      <div style="width:${taux_presence || 0}%;height:100%;background:var(--success);border-radius:10px;transition:width 1s"></div>
+    </div>
+  </div>
+  <div class="card-footer">
+    <span><i class="fas fa-calendar-alt"></i> ${annee_scolaire || '2024-2025'}</span>
+    <button class="btn btn-sm btn-primary" onclick="event.stopPropagation();${onclick || `router.navigate('eleves/classe/${id}')`}"><i class="fas fa-eye"></i> Voir</button>
+  </div>
+</div>

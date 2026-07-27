@@ -1,0 +1,27 @@
+<div class="ui-card">
+  <div class="card-body">
+    <h4 style="margin-bottom:1rem"><i class="fas fa-chart-pie"></i> Statistiques - ${nom_classe}</h4>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem">
+      <div style="text-align:center;padding:1rem;background:var(--bg);border-radius:var(--radius-sm)">
+        <i class="fas fa-user-graduate" style="font-size:2rem;color:var(--primary);margin-bottom:0.5rem"></i>
+        <div style="font-size:1.5rem;font-weight:bold">${nb_eleves || 0}</div>
+        <div style="color:var(--text-light);font-size:0.85rem">Total élèves</div>
+      </div>
+      <div style="text-align:center;padding:1rem;background:var(--success-light);border-radius:var(--radius-sm)">
+        <i class="fas fa-user-check" style="font-size:2rem;color:var(--success);margin-bottom:0.5rem"></i>
+        <div style="font-size:1.5rem;font-weight:bold">${presents || 0}</div>
+        <div style="color:var(--text-light);font-size:0.85rem">Présents</div>
+      </div>
+      <div style="text-align:center;padding:1rem;background:var(--danger-light);border-radius:var(--radius-sm)">
+        <i class="fas fa-user-times" style="font-size:2rem;color:var(--danger);margin-bottom:0.5rem"></i>
+        <div style="font-size:1.5rem;font-weight:bold">${absents || 0}</div>
+        <div style="color:var(--text-light);font-size:0.85rem">Absents</div>
+      </div>
+      <div style="text-align:center;padding:1rem;background:var(--warning-light);border-radius:var(--radius-sm)">
+        <i class="fas fa-user-clock" style="font-size:2rem;color:var(--warning);margin-bottom:0.5rem"></i>
+        <div style="font-size:1.5rem;font-weight:bold">${retards || 0}</div>
+        <div style="color:var(--text-light);font-size:0.85rem">Retards</div>
+      </div>
+    </div>
+  </div>
+</div>

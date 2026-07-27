@@ -1,0 +1,5 @@
+<div class="input-wrapper" style="${fullWidth ? 'width:100%' : 'max-width:400px'}">
+  <i class="fas fa-search input-icon input-icon-left"></i>
+  <input type="text" class="form-input has-icon" id="${id || 'search'}" placeholder="${placeholder || 'Rechercher...'}" oninput="${onSearch ? `debounceSearch('${id || 'search'}')` : ''}" value="${value || ''}">
+  ${value ? `<button class="search-clear" onclick="document.getElementById('${id || 'search'}').value='';${onClear || ''}" style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-light);cursor:pointer"><i class="fas fa-times"></i></button>` : ''}
+</div>

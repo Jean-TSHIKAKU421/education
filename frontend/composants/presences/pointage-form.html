@@ -1,0 +1,23 @@
+<div class="ui-card" style="max-width:600px;margin:0 auto">
+  <div class="card-body">
+    <h3 style="margin-bottom:1.5rem;text-align:center"><i class="fas fa-qrcode"></i> Pointage de présence</h3>
+    <div style="text-align:center;margin-bottom:1.5rem">
+      <div style="width:200px;height:200px;border:2px dashed var(--border);border-radius:var(--radius);margin:0 auto;display:flex;align-items:center;justify-content:center;background:var(--bg)">
+        <div style="text-align:center;color:var(--text-light)">
+          <i class="fas fa-qrcode" style="font-size:3rem;display:block;margin-bottom:0.5rem"></i>
+          <p>Scanner le QR code</p>
+        </div>
+      </div>
+    </div>
+    <div id="pointage-resultat" style="text-align:center;margin-bottom:1rem"></div>
+    <div style="display:flex;flex-direction:column;gap:0.5rem">
+      <button class="btn btn-primary btn-full" onclick="scannerQR()"><i class="fas fa-camera"></i> Scanner</button>
+      <p style="text-align:center;color:var(--text-light)">ou</p>
+      <div class="input-wrapper">
+        <i class="fas fa-keyboard input-icon input-icon-left"></i>
+        <input type="text" class="form-input has-icon" placeholder="Entrer le matricule manuellement" id="matricule-manuel">
+      </div>
+      <button class="btn btn-outline btn-full" onclick="pointageManuel()"><i class="fas fa-check"></i> Valider</button>
+    </div>
+  </div>
+</div>

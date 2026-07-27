@@ -1,0 +1,7 @@
+<div class="search-bar" style="margin-bottom:1.5rem">
+  <div class="input-wrapper">
+    <i class="fas fa-search input-icon input-icon-left"></i>
+    <input type="text" class="form-input has-icon" id="search-classes" placeholder="Rechercher une classe..." oninput="dashboard.filtrerClasses();var c=document.getElementById('clear-search');if(c)c.style.display=this.value?'':'none'">
+    <button class="search-clear" id="clear-search" style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-light);cursor:pointer;display:none" onclick="document.getElementById('search-classes').value='';dashboard.filtrerClasses();this.style.display='none'"><i class="fas fa-times"></i></button>
+  </div>
+</div>

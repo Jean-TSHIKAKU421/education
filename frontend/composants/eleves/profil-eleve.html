@@ -1,0 +1,17 @@
+<div>
+  <button class="btn btn-ghost" onclick="history.back()" style="margin-bottom:1.5rem"><i class="fas fa-arrow-left"></i> Retour</button>
+  <div class="profil-header">
+    <div class="profil-avatar-large">${initiales}</div>
+    <div style="flex:1">
+      <h2>${prenom} ${nom}</h2>
+      <div style="display:flex;gap:1rem;color:var(--text-light);margin-top:0.5rem;flex-wrap:wrap">
+        <span><i class="fas fa-id-card"></i> ${matricule}</span>
+        <span><i class="fas fa-graduation-cap"></i> ${classe || 'N/A'}</span>
+        <span><i class="fas fa-calendar"></i> ${date_inscription || 'N/A'}</span>
+        <span><i class="fas fa-birthday-cake"></i> ${age || '?'} ans</span>
+      </div>
+      <div style="margin-top:1rem;display:flex;gap:0.5rem;flex-wrap:wrap">${actions || ''}</div>
+    </div>
+  </div>
+  <div class="profil-grid">${contenu_gauche || ''}${contenu_droite || ''}</div>
+</div>

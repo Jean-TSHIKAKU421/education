@@ -1,0 +1,31 @@
+<div class="table-container">
+  ${searchable !== false ? `<div class="table-toolbar" style="margin-bottom:1rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap">
+    <div class="input-wrapper" style="flex:1;min-width:200px"><i class="fas fa-search input-icon input-icon-left"></i><input type="text" class="form-input has-icon" placeholder="Rechercher..." onkeyup="searchTable(this,'${tableId}')"></div>
+    ${toolbarActions || ''}
+  </div>` : ''}
+  <div style="overflow-x:auto">
+    <table class="data-table" id="${tableId}">
+      <thead><tr>
+        ${selectable ? `<th style="width:40px"><input type="checkbox" onchange="toggleAllCheckboxes(this,'${tableId}')"></th>` : ''}
+        ${columns.map(c => `<th ${c.sortable ? `class="sortable" onclick="sortTable('${tableId}','${c.key}')"` : ''} style="${c.width ? `width:${c.width}` : ''}">${c.icon ? `<i class="fas fa-${c.icon}"></i> ` : ''}${c.label}${c.sortable ? ' <i class="fas fa-sort"></i>' : ''}</th>`).join('')}
+        ${actions && actions.length ? '<th style="width:120px">Actions</th>' : ''}
+      </tr></thead>
+      <tbody>
+        ${data && data.length > 0 ? data.map((row,i) => `<tr class="${rowClass || ''} ${onclick ? 'clickable-row' : ''}" ${onclick ? `onclick="${onclick}(${row.id || i})"` : ''} data-id="${row.id || i}">
+          ${selectable ? `<td><input type="checkbox" class="row-checkbox" value="${row.id || i}" onclick="event.stopPropagation()"></td>` : ''}
+          ${columns.map(c => `<td>${row[c.key] !== undefined ? row[c.key] : '-'}</td>`).join('')}
+          ${actions ? `<td class="actions-cell">${actions.map(a => `<button class="btn btn-sm btn-${a.color || 'ghost'}" onclick="event.stopPropagation();${a.onclick}(${row.id || i})" title="${a.label}"><i class="fas fa-${a.icon}"></i></button>`).join('')}</td>` : ''}
+        </tr>`).join('') : `<tr class="empty-row"><td colspan="${columns.length + (selectable ? 1 : 0) + (actions ? 1 : 0)}"><i class="fas fa-${emptyIcon || 'inbox'} empty-icon"></i><p>${emptyMsg || 'Aucune donnée disponible'}</p>${emptyAction || ''}</td></tr>`}
+      </tbody>
+      ${footerRows ? `<tfoot>${footerRows}</tfoot>` : ''}
+    </table>
+  </div>
+  ${pagination ? `<div class="table-pagination" style="display:flex;justify-content:space-between;align-items:center;padding:1rem 0">
+    <span>${pagination.total || 0} résultats</span>
+    <div style="display:flex;gap:0.5rem">
+      <button class="btn btn-sm btn-ghost" ${pagination.page <= 1 ? 'disabled' : ''} onclick="${pagination.onPrev}"><i class="fas fa-chevron-left"></i></button>
+      <span style="padding:0.25rem 0.75rem">${pagination.page || 1} / ${pagination.totalPages || 1}</span>
+      <button class="btn btn-sm btn-ghost" ${pagination.page >= pagination.totalPages ? 'disabled' : ''} onclick="${pagination.onNext}"><i class="fas fa-chevron-right"></i></button>
+    </div>
+  </div>` : ''}
+</div>

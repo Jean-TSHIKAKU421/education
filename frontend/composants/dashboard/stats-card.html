@@ -1,0 +1,11 @@
+<div class="ui-card ${hoverable ? 'card-hoverable' : ''}" ${onclick ? `onclick="${onclick}"` : ''}>
+  <div class="card-icon-wrapper" style="background:${iconBg || 'var(--primary)'}"><i class="fas fa-${icon || 'chart-bar'}"></i></div>
+  <div class="card-body">
+    <div class="card-header">
+      <h4 class="card-title" style="font-size:1.5rem">${value || '0'}</h4>
+      ${tendance ? `<span style="color:${tendance > 0 ? 'var(--success)' : 'var(--danger)'};font-size:0.85rem"><i class="fas fa-arrow-${tendance > 0 ? 'up' : 'down'}"></i> ${Math.abs(tendance)}%</span>` : ''}
+    </div>
+    <p class="card-subtitle">${label || 'Statistique'}</p>
+    ${description ? `<p style="font-size:0.8rem;color:var(--text-light);margin-top:0.5rem">${description}</p>` : ''}
+  </div>
+</div>

@@ -1,0 +1,5 @@
+<div class="alert-message ${type || 'info'} ${dismissible ? 'alert-dismissible' : ''}" style="${style || ''}">
+  <i class="fas fa-${icon || 'info-circle'}"></i>
+  <span>${message || ''}</span>
+  ${dismissible ? `<button class="alert-close" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>` : ''}
+</div>

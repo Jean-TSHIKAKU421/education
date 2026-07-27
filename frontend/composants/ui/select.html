@@ -1,0 +1,12 @@
+<div class="input-group ${error ? 'has-error' : ''}">
+  ${label ? `<label class="input-label" for="${id || name}">${icon ? `<i class="fas fa-${icon}"></i>` : ''} ${label} ${required ? '<span class="required">*</span>' : ''}</label>` : ''}
+  <div class="select-wrapper">
+    <select name="${name}" id="${id || name}" class="form-select" ${required ? 'required' : ''} ${disabled ? 'disabled' : ''} ${multiple ? 'multiple' : ''}>
+      ${placeholder ? `<option value="" disabled selected>${placeholder}</option>` : ''}
+      ${options ? options.map(o => `<option value="${o.value}" ${o.selected ? 'selected' : ''} ${o.disabled ? 'disabled' : ''}>${o.label}</option>`).join('') : ''}
+    </select>
+    <i class="fas fa-chevron-down select-arrow"></i>
+  </div>
+  ${error ? `<span class="field-message error"><i class="fas fa-exclamation-circle"></i> ${error}</span>` : ''}
+  ${helper ? `<span class="field-message"><i class="fas fa-info-circle"></i> ${helper}</span>` : ''}
+</div>

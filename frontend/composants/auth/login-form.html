@@ -1,0 +1,31 @@
+<form class="login-form" id="${formId || 'login-form'}" autocomplete="off" onsubmit="event.preventDefault();${onsubmit || 'handleLogin()'}">
+  <div class="form-group">
+    <label for="username"><i class="fas fa-user"></i> Nom d'utilisateur</label>
+    <div class="input-wrapper">
+      <i class="fas fa-user input-icon input-icon-left"></i>
+      <input type="text" id="username" name="username" class="form-input has-icon" placeholder="${usernamePlaceholder || 'Nom d\'utilisateur'}" autocomplete="username" required>
+    </div>
+  </div>
+  <div class="form-group">
+    <label for="password"><i class="fas fa-lock"></i> Mot de passe</label>
+    <div class="input-wrapper">
+      <i class="fas fa-lock input-icon input-icon-left"></i>
+      <input type="password" id="password" name="password" class="form-input has-icon" placeholder="${passwordPlaceholder || 'Mot de passe'}" autocomplete="current-password" required>
+      <button type="button" class="toggle-password" onclick="const p=document.getElementById('password');p.type=p.type==='password'?'text':'password';this.querySelector('i').className=p.type==='password'?'fas fa-eye':'fas fa-eye-slash';"><i class="fas fa-eye"></i></button>
+    </div>
+  </div>
+  ${showOptions !== false ? `
+  <div class="login-options">
+    <label class="remember-me">
+      <input type="checkbox" id="remember" name="remember">
+      <span class="checkbox-custom"><i class="fas fa-check"></i></span>
+      <span>Se souvenir de moi</span>
+    </label>
+    ${showForgot ? `<a href="#" class="forgot-password" onclick="${onForgot || 'alert(\'Contactez l\\\'administrateur\')'}"><i class="fas fa-question-circle"></i> Mot de passe oublié ?</a>` : ''}
+  </div>` : ''}
+  <button type="submit" class="btn-login" id="${btnId || 'btn-login'}">
+    <i class="fas fa-${btnIcon || 'sign-in-alt'}"></i>
+    <span>${btnText || 'Se connecter'}</span>
+  </button>
+  ${error ? `<div class="alert-message error" style="margin-top:1rem"><i class="fas fa-exclamation-circle"></i> ${error}</div>` : ''}
+</form>

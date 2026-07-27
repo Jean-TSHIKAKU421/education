@@ -1,0 +1,4 @@
+<button class="btn btn-${type || 'primary'} btn-${size || 'md'} ${fullWidth ? 'btn-full' : ''}" ${id ? `id="${id}"` : ''} ${disabled ? 'disabled' : ''} ${onclick ? `onclick="${onclick}"` : ''} ${typeBtn ? `type="${typeBtn}"` : 'type="button"'}>
+  ${loading ? '<i class="fas fa-spinner fa-spin"></i>' : icon ? `<i class="fas fa-${icon} ${iconPos === 'right' ? 'btn-icon-right' : 'btn-icon-left'}"></i>` : ''}
+  <span>${text || 'Button'}</span>
+</button>

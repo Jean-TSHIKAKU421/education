@@ -1,0 +1,7 @@
+<div class="input-group">
+  ${label ? `<label class="input-label" for="${id || name}">${icon ? `<i class="fas fa-${icon}"></i>` : ''} ${label}</label>` : ''}
+  <div class="input-wrapper">
+    <i class="fas fa-calendar-alt input-icon input-icon-left"></i>
+    <input type="date" name="${name}" id="${id || name}" class="form-input has-icon" value="${value || ''}" ${min ? `min="${min}"` : ''} ${max ? `max="${max}"` : ''} ${required ? 'required' : ''}>
+  </div>
+</div>

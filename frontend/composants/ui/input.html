@@ -1,0 +1,12 @@
+<div class="input-group ${error ? 'has-error' : ''}">
+  ${label ? `<label class="input-label" for="${id || name}">${labelIcon ? `<i class="fas fa-${labelIcon}"></i>` : ''} ${label} ${required ? '<span class="required">*</span>' : ''}</label>` : ''}
+  <div class="input-wrapper">
+    ${icon && iconPos !== 'right' ? `<i class="fas fa-${icon} input-icon input-icon-left"></i>` : ''}
+    <input type="${type || 'text'}" name="${name}" id="${id || name}" class="form-input ${icon && iconPos !== 'right' ? 'has-icon' : ''} ${icon && iconPos === 'right' ? 'has-icon-right' : ''}" placeholder="${placeholder || ''}" value="${value || ''}" ${required ? 'required' : ''} ${disabled ? 'disabled' : ''} ${readonly ? 'readonly' : ''} ${min ? `min="${min}"` : ''} ${max ? `max="${max}"` : ''} ${step ? `step="${step}"` : ''} ${pattern ? `pattern="${pattern}"` : ''} ${autocomplete ? `autocomplete="${autocomplete}"` : ''}>
+    ${icon && iconPos === 'right' ? `<i class="fas fa-${icon} input-icon input-icon-right"></i>` : ''}
+    ${togglePassword ? `<button type="button" class="toggle-password" onclick="const p=document.getElementById('${id || name}');p.type=p.type==='password'?'text':'password';this.querySelector('i').className=p.type==='password'?'fas fa-eye':'fas fa-eye-slash';"><i class="fas fa-eye"></i></button>` : ''}
+  </div>
+  ${error ? `<span class="field-message error"><i class="fas fa-exclamation-circle"></i> ${error}</span>` : ''}
+  ${helper && !error ? `<span class="field-message"><i class="fas fa-info-circle"></i> ${helper}</span>` : ''}
+  ${success ? `<span class="field-message success"><i class="fas fa-check-circle"></i> ${success}</span>` : ''}
+</div>

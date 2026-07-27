@@ -1,0 +1,26 @@
+<form class="eleve-form" id="${formId || 'eleve-form'}" onsubmit="event.preventDefault();${onsubmit || 'sauvegarderEleve()'}">
+  <div style="display:flex;flex-direction:column;gap:1.5rem">
+    <div class="form-section">
+      <h3 class="section-title"><i class="fas fa-user"></i> Informations personnelles</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem">
+        ${inputs?.nom || ''}
+        ${inputs?.prenom || ''}
+        ${inputs?.date_naissance || ''}
+        ${inputs?.genre || ''}
+        ${inputs?.adresse || ''}
+        ${inputs?.classe_id || ''}
+      </div>
+    </div>
+    <div class="form-section">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+        <h3 class="section-title" style="margin:0"><i class="fas fa-users"></i> Responsables</h3>
+        <button type="button" class="btn btn-sm btn-ghost" onclick="ajouterResponsable()"><i class="fas fa-plus-circle"></i> Ajouter</button>
+      </div>
+      <div id="responsables-container">${responsablesHTML || ''}</div>
+    </div>
+    <div style="display:flex;gap:0.75rem;justify-content:flex-end">
+      <button type="button" class="btn btn-ghost" onclick="${oncancel || 'history.back()'}"><i class="fas fa-times"></i> Annuler</button>
+      <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> ${submitText || 'Enregistrer'}</button>
+    </div>
+  </div>
+</form>

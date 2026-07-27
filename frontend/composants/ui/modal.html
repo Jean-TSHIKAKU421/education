@@ -1,0 +1,13 @@
+<div class="modal-overlay" id="${id}-overlay" onclick="closeModal('${id}')">
+  <div class="modal modal-${size || 'md'}" id="${id}" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">${icon ? `<i class="fas fa-${icon} modal-title-icon"></i>` : ''} <h3>${title || 'Modal'}</h3></div>
+      ${closeBtn !== false ? `<button class="modal-close" onclick="closeModal('${id}')"><i class="fas fa-times"></i></button>` : ''}
+    </div>
+    <div class="modal-body">${content || ''}</div>
+    ${footer !== false ? `<div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('${id}')"><i class="fas fa-times"></i> ${cancelText || 'Annuler'}</button>
+      <button class="btn btn-primary btn-sm" onclick="${onConfirm || `confirmModal('${id}')`}"><i class="fas fa-check"></i> ${confirmText || 'Confirmer'}</button>
+    </div>` : ''}
+  </div>
+</div>

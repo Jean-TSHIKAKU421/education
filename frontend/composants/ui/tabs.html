@@ -1,0 +1,8 @@
+<div class="tabs-container">
+  <div class="tabs-nav">
+    ${tabs ? tabs.map((t,i) => `<button class="tab-item ${i === (active || 0) ? 'active' : ''}" onclick="switchTab('${tabGroup}','${t.id}')">${t.icon ? `<i class="fas fa-${t.icon}"></i>` : ''} ${t.label}</button>`).join('') : ''}
+  </div>
+  <div class="tabs-content" id="${tabGroup}-content">
+    ${tabs ? tabs.map((t,i) => `<div class="tab-panel ${i === (active || 0) ? 'active' : ''}" id="${t.id}-panel">${t.content || ''}</div>`).join('') : ''}
+  </div>
+</div>

@@ -1,0 +1,6 @@
+<div class="input-group ${error ? 'has-error' : ''}">
+  ${label ? `<label class="input-label" for="${id || name}">${icon ? `<i class="fas fa-${icon}"></i>` : ''} ${label} ${required ? '<span class="required">*</span>' : ''}</label>` : ''}
+  <textarea name="${name}" id="${id || name}" class="form-input" rows="${rows || 4}" placeholder="${placeholder || ''}" ${required ? 'required' : ''} ${disabled ? 'disabled' : ''} ${readonly ? 'readonly' : ''} style="resize:${resize || 'vertical'}">${value || ''}</textarea>
+  ${error ? `<span class="field-message error"><i class="fas fa-exclamation-circle"></i> ${error}</span>` : ''}
+  ${helper ? `<span class="field-message"><i class="fas fa-info-circle"></i> ${helper}</span>` : ''}
+</div>

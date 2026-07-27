@@ -1,0 +1,4 @@
+<div class="form-section" style="margin-bottom:1.5rem">
+  ${title ? `<h3 class="section-title" style="margin-bottom:1rem">${icon ? `<i class="fas fa-${icon}"></i>` : ''} ${title} ${action ? `<button type="button" class="btn btn-sm btn-ghost" onclick="${action.onclick}"><i class="fas fa-${action.icon || 'plus-circle'}"></i> ${action.label || 'Ajouter'}</button>` : ''}</h3>` : ''}
+  <div class="form-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(${colMin || '250px'},1fr));gap:1rem">${content || ''}</div>
+</div>

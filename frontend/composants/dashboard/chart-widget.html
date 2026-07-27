@@ -1,0 +1,16 @@
+<div class="ui-card">
+  <div class="card-body">
+    <div class="card-header" style="margin-bottom:1rem">
+      <h4 class="card-title"><i class="fas fa-${icon || 'chart-line'}"></i> ${title || 'Graphique'}</h4>
+      ${period ? `<span class="badge badge-info">${period}</span>` : ''}
+    </div>
+    <div id="${chartId || 'chart'}" style="width:100%;height:${height || '250px'}">
+      <div style="display:flex;align-items:flex-end;justify-content:space-around;height:100%;gap:0.5rem;padding:0.5rem 0">
+        ${data ? data.map(d => `<div style="flex:1;text-align:center">
+          <div style="height:${d.value || 0}%;background:${d.color || 'var(--primary)'};border-radius:4px 4px 0 0;transition:height 0.5s;min-height:4px"></div>
+          <div style="font-size:0.7rem;color:var(--text-light);margin-top:0.25rem">${d.label || ''}</div>
+        </div>`).join('') : '<p style="color:var(--text-light);text-align:center;width:100%">Aucune donnée</p>'}
+      </div>
+    </div>
+  </div>
+</div>

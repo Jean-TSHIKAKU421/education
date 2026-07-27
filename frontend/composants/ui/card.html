@@ -1,0 +1,10 @@
+<div class="ui-card ${hoverable ? 'card-hoverable' : ''} ${className || ''}" ${onclick ? `onclick="${onclick}"` : ''} style="${style || ''}">
+  ${icon ? `<div class="card-icon-wrapper" style="background:${iconBg || 'var(--primary)'}"><i class="fas fa-${icon}"></i></div>` : ''}
+  ${image ? `<div class="card-image"><img src="${image}" alt="${title || ''}"></div>` : ''}
+  <div class="card-body">
+    ${title ? `<div class="card-header"><h4 class="card-title">${title}</h4>${badge ? `<span class="badge badge-${badge.type || 'info'}">${badge.icon ? `<i class="fas fa-${badge.icon}"></i>` : ''} ${badge.text}</span>` : ''}</div>` : ''}
+    ${subtitle ? `<p class="card-subtitle">${subtitle}</p>` : ''}
+    ${content ? `<div class="card-content">${content}</div>` : ''}
+  </div>
+  ${footer ? `<div class="card-footer">${footer}</div>` : ''}
+</div>
