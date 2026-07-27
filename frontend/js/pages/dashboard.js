@@ -17,7 +17,6 @@ class DashboardPage {
         const te = this.allClasses.reduce((s,c) => s + (c.nb_eleves||0), 0);
         const searchRendu = await CL.render('forms/search-bar', { id: 'search-classes', placeholder: 'Rechercher une classe...', oninput: "dashboard.filtrerClasses();var c=document.getElementById('search-classes-clear');if(c)c.style.display=this.value?'':'none'", onclear: 'dashboard.filtrerClasses()' });
         m.innerHTML = `<div class="dashboard-page">
-  <div class="dashboard-header"><img src="${inst.logo||'/assets/logo-ecole.png'}" alt="Logo" onerror="this.style.display='none'"><div class="dashboard-header-center"><h2>${inst.nom}</h2><span class="badge badge-info" style="margin-top:2px"><i class="fas fa-${icons[inst.niveau]}"></i> ${labels[inst.niveau]}</span></div><div style="width:42px"></div></div>
   <div class="niveau-switcher">${this.institutions.map(i => `<button class="btn btn-sm ${i.id===inst.id?'btn-primary':'btn-ghost'}" onclick="dashboard.switchInstitution(${i.id})"><i class="fas fa-${icons[i.niveau]}"></i> ${labels[i.niveau]}</button>`).join('')}</div>
   <div style="display:flex;justify-content:center;margin-bottom:1.25rem">
     <div class="ui-card" style="width:220px;text-align:center">
@@ -72,5 +71,13 @@ class DashboardPage {
   <div class="modal-footer"><button class="btn btn-ghost btn-sm" onclick="document.getElementById('modal-options').remove()"><i class="fas fa-times"></i> Fermer</button></div></div>`;
         } catch(e) { overlay.innerHTML = `<div class="modal modal-md"><div class="modal-header"><h3>Erreur</h3></div><div class="modal-body"><p>${e.message}</p></div></div>`; }
     }
-    async switchInstitution(id) { this.institutionActive = this.institutions.find(i => i.id === id); await this.afficher(document.getElementById('main-content')); }
+    async switchInstitution(id) {
+        this.institutionActive = this.institutions.find(i => i.id === id);
+        // Mettre à jour le niveau dans le header
+        const nivEl = document.getElementById('header-institution-niveau');
+        const labels = { maternelle: 'Maternelle', primaire: 'Primaire', secondaire: 'Secondaire' };
+        const icons = { maternelle: 'child', primaire: 'child-reaching', secondaire: 'user-graduate' };
+        if (nivEl) nivEl.innerHTML = `<i class="fas fa-${icons[this.institutionActive.niveau]}"></i> ${labels[this.institutionActive.niveau]}`;
+        await this.afficher(document.getElementById('main-content'));
+    }
 }

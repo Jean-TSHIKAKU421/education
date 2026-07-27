@@ -1,6 +1,7 @@
 let dashboard, classeDetail;
 async function initApp() {
     if (!authService.isAuth()) { window.location.href = '/login.html'; return; }
+    if (document.getElementById('header-container').children.length > 0) return;
     const user = authService.getUser();
     if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
     try { const h = await CL.loadTemplate('/composants/layout/header.html'); document.getElementById('header-container').innerHTML = h; updateThemeIcon(); updateHeaderInfo(); } catch(e) {}
