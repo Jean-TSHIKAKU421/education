@@ -170,6 +170,9 @@ body.light .badge { box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
 .responsable-contacts .btn { font-size: 0.78rem; }
 .contact-moyen { color: var(--text-secondary); display: flex; align-items: center; gap: 0.3rem; }
 .contact-valeur { font-weight: 500; }
+.contact-clickable { text-decoration: none; color: inherit; transition: var(--transition); border-radius: var(--radius-xl); padding: 0.3rem 0.5rem; margin: 0 -0.5rem; }
+.contact-clickable:hover { background: var(--primary-light); }
+.contact-clickable:hover .contact-valeur { color: var(--primary); }
 @media (max-width: 768px) { .profil-grid-top { grid-template-columns: 1fr; } .responsables-grid { grid-template-columns: 1fr; } }
 
 @media (max-width: 768px) {

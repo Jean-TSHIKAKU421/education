@@ -1,20 +1,19 @@
 class ProfilElevePage {
-    constructor(id) { this.id = id; this.respCount = 0; this.responsablesExistants = 0; }
+    constructor(id) { this.id = id; this.eleveData = null; }
     async render() {
         const m = document.getElementById('main-content');
         m.innerHTML = `<div style="text-align:center;padding:3rem"><div class="spinner"></div><p style="color:var(--text-muted);margin-top:0.75rem">Chargement du profil...</p></div>`;
         try {
             const res = await API.getEleve(this.id);
             if (!res.success || !res.data) { m.innerHTML = `<div style="text-align:center;padding:3rem"><i class="fas fa-user-slash" style="font-size:3rem;color:var(--text-muted)"></i><h3 style="margin-top:1rem">Élève non trouvé</h3></div>`; return; }
-            const e = res.data;
-            this.responsablesExistants = (e.responsables||[]).length;
+            const e = res.data; this.eleveData = e;
             const init = (e.prenom||'').charAt(0)+(e.nom||'').charAt(0);
             const age = new Date().getFullYear() - new Date(e.date_naissance).getFullYear();
-            const respHTML = (e.responsables||[]).map(r => `<div class="responsable-card"><div class="responsable-header"><strong>${r.nom_complet}</strong><span class="badge badge-info">${r.lien_parente}</span></div><div class="responsable-contacts">${r.telephone?`<div class="contact-item"><span class="contact-moyen"><i class="fas fa-phone"></i> Téléphone</span><span class="contact-valeur">${r.telephone}</span></div>`:''}${r.whatsapp?`<div class="contact-item"><span class="contact-moyen"><i class="fab fa-whatsapp"></i> WhatsApp</span><span class="contact-valeur">${r.whatsapp}</span></div>`:''}${r.email?`<div class="contact-item"><span class="contact-moyen"><i class="fas fa-envelope"></i> E-mail</span><span class="contact-valeur">${r.email}</span></div>`:''}</div></div>`).join('');
+            const respHTML = (e.responsables||[]).map(r => `<div class="responsable-card" style="display:flex;flex-direction:column;height:100%"><div class="responsable-header"><strong>${r.nom_complet}</strong><span class="badge badge-info">${r.lien_parente}</span></div><div class="responsable-contacts" style="flex:1">${r.telephone?`<a href="tel:${r.telephone}" class="contact-item contact-clickable"><span class="contact-moyen"><i class="fas fa-phone"></i> Téléphone</span><span class="contact-valeur">${r.telephone}</span></a>`:''}${r.whatsapp?`<a href="https://wa.me/${(r.whatsapp||'').replace(/\+/g,'')}" target="_blank" class="contact-item contact-clickable"><span class="contact-moyen"><i class="fab fa-whatsapp"></i> WhatsApp</span><span class="contact-valeur">${r.whatsapp}</span></a>`:''}${r.email?`<a href="mailto:${r.email}" class="contact-item contact-clickable"><span class="contact-moyen"><i class="fas fa-envelope"></i> E-mail</span><span class="contact-valeur">${r.email}</span></a>`:''}</div><button class="btn btn-sm btn-danger" style="margin-top:auto;width:100%" onclick="event.stopPropagation();profilEleve.confirmerSuppressionResponsable(${r.id},'${(r.nom_complet||'').replace(/'/g,"\\'")}')"><i class="fas fa-trash"></i> Supprimer</button></div>`).join('');
             const derniersJours = (e.presences||[]).slice(0,14).map(p => { const d=new Date(p.date_presence); const sc=p.statut==='present'?'present':p.statut==='absent'?'absent':p.statut==='retard'?'retard':p.statut==='justifie'?'justifie':''; return `<div class="presence-day ${sc}" title="${d.toLocaleDateString('fr-FR')}: ${p.statut||'?'}">${d.getDate()}</div>`; }).join('');
             const taux = e.taux_presence||0; const tauxColor = taux>=70?'var(--success)':taux>=50?'var(--warning)':'var(--danger)';
             m.innerHTML = `<div class="profil-eleve-container">
-  <button class="btn btn-ghost" onclick="router.navigate('classe/${e.classe_id}')" style="margin-bottom:1.5rem"><i class="fas fa-arrow-left"></i> Retour</button>
+  <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1.5rem"><button class="btn btn-ghost" onclick="router.navigate('classe/${e.classe_id}')"><i class="fas fa-arrow-left"></i> Retour</button><button class="btn btn-sm btn-warning" style="margin-left:auto" onclick="profilEleve.ouvrirModalModifier()"><i class="fas fa-edit"></i> Modifier</button></div>
   <div class="profil-header-card"><div class="profil-avatar-lg" style="background:var(--gradient-${e.genre==='F'?'3':'1'})">${init}</div><div style="flex:1"><h2>${e.prenom} ${e.nom}</h2><div style="display:flex;gap:1rem;color:var(--text-secondary);margin-top:0.5rem;flex-wrap:wrap"><span><i class="fas fa-id-card"></i> ${e.matricule}</span><span><i class="fas fa-graduation-cap"></i> ${e.classe_nom||'N/A'}</span><span><i class="fas fa-calendar"></i> ${new Date(e.date_inscription).toLocaleDateString('fr-FR')}</span><span><i class="fas fa-birthday-cake"></i> ${age} ans</span></div></div></div>
   <div class="profil-grid-top">
     <div class="profil-section"><h3><i class="fas fa-address-card"></i> Identité</h3><div class="info-liste"><div class="info-item"><span class="info-label">Date de naissance</span><span class="info-value">${new Date(e.date_naissance).toLocaleDateString('fr-FR',{year:'numeric',month:'long',day:'numeric'})}</span></div><div class="info-item"><span class="info-label">Genre</span><span class="info-value"><span class="badge badge-info"><i class="fas fa-${e.genre==='M'?'mars':'venus'}"></i> ${e.genre==='M'?'Masculin':'Féminin'}</span></span></div><div class="info-item"><span class="info-label">Adresse</span><span class="info-value">${e.adresse||'Non renseignée'}</span></div><div class="info-item"><span class="info-label">Âge</span><span class="info-value">${age} ans</span></div></div></div>
@@ -30,9 +29,47 @@ class ProfilElevePage {
         } catch(e) { m.innerHTML = `<div style="text-align:center;padding:3rem"><i class="fas fa-exclamation-triangle" style="font-size:2.5rem;color:var(--text-muted)"></i><p>${e.message}</p></div>`; }
     }
 
+    // ==================== MODIFIER ÉLÈVE ====================
+    ouvrirModalModifier() {
+        const e = this.eleveData; if (!e) return;
+        const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-modifier';
+        overlay.onclick = ev => { if (ev.target === overlay) overlay.remove(); };
+        overlay.innerHTML = `<div class="modal" onclick="event.stopPropagation()"><div class="modal-header"><h3><i class="fas fa-edit"></i> Modifier l'élève</h3><button class="modal-close" onclick="document.getElementById('modal-modifier').remove()"><i class="fas fa-times"></i></button></div>
+  <div class="modal-body"><form onsubmit="return false">
+    <div class="input-group"><label class="input-label">Nom <span class="required">*</span></label><div class="input-wrapper"><i class="fas fa-user input-icon"></i><input type="text" class="form-input" id="mod-nom" value="${e.nom||''}" required></div></div>
+    <div class="input-group"><label class="input-label">Prénom <span class="required">*</span></label><div class="input-wrapper"><i class="fas fa-user input-icon"></i><input type="text" class="form-input" id="mod-prenom" value="${e.prenom||''}" required></div></div>
+    <div class="input-group"><label class="input-label">Date de naissance <span class="required">*</span></label><div class="input-wrapper"><i class="fas fa-calendar input-icon"></i><input type="date" class="form-input" id="mod-date" value="${(e.date_naissance||'').split('T')[0]}" required></div></div>
+    <div class="input-group"><label class="input-label">Genre <span class="required">*</span></label><div class="input-wrapper" style="cursor:pointer" onclick="profilEleve.ouvrirModalGenreModif()"><i class="fas fa-venus-mars input-icon"></i><input type="text" class="form-input" id="mod-genre-nom" readonly value="${e.genre==='M'?'Masculin':'Féminin'}" required><input type="hidden" id="mod-genre" value="${e.genre||''}"><i class="fas fa-chevron-down" style="position:absolute;right:0.8rem;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;font-size:0.8rem"></i></div></div>
+    <div class="input-group"><label class="input-label">Adresse</label><div class="input-wrapper"><i class="fas fa-map-marker-alt input-icon"></i><input type="text" class="form-input" id="mod-adresse" value="${e.adresse||''}"></div></div>
+    <p style="color:var(--text-muted);font-size:0.8rem;margin-top:0.5rem"><i class="fas fa-info-circle"></i> Le matricule et la classe ne peuvent pas être modifiés.</p>
+  </form></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="document.getElementById('modal-modifier').remove()">Annuler</button><button class="btn btn-primary" onclick="profilEleve.enregistrerModifications()"><i class="fas fa-save"></i> Enregistrer</button></div></div>`;
+        document.body.appendChild(overlay);
+    }
+
+    ouvrirModalGenreModif() {
+        const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-genre-modif'; overlay.style.zIndex = '1200';
+        overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+        const itemsHTML = `<div class="ui-card card-hoverable" onclick="document.getElementById('mod-genre-nom').value='Masculin';document.getElementById('mod-genre').value='M';document.getElementById('modal-genre-modif').remove()"><div style="padding:0.8rem 1rem;display:flex;align-items:center;gap:0.6rem"><i class="fas fa-mars" style="color:#3b82f6;font-size:1.2rem;flex-shrink:0"></i><span style="font-size:0.9rem;font-weight:500">Masculin</span></div></div><div class="ui-card card-hoverable" onclick="document.getElementById('mod-genre-nom').value='Féminin';document.getElementById('mod-genre').value='F';document.getElementById('modal-genre-modif').remove()"><div style="padding:0.8rem 1rem;display:flex;align-items:center;gap:0.6rem"><i class="fas fa-venus" style="color:#ec4899;font-size:1.2rem;flex-shrink:0"></i><span style="font-size:0.9rem;font-weight:500">Féminin</span></div></div>`;
+        overlay.innerHTML = CL.composants['ui/list-modal'] ? CL.composants['ui/list-modal'].replace(/\$\{id\}/g,'modal-genre-modif').replace(/\$\{icon\}/g,'venus-mars').replace(/\$\{title\}/g,'Choisir le genre').replace(/\$\{items\}/g,itemsHTML) : `<div class="modal" style="max-width:420px;max-height:80vh;display:flex;flex-direction:column" onclick="event.stopPropagation()"><div class="modal-header"><h3><i class="fas fa-venus-mars"></i> Choisir le genre</h3><button class="modal-close" onclick="document.getElementById('modal-genre-modif').remove()"><i class="fas fa-times"></i></button></div><div class="modal-body" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:0.5rem;padding-bottom:0.5rem">${itemsHTML}</div></div>`;
+        document.body.appendChild(overlay);
+    }
+
+    async enregistrerModifications() {
+        const nom = document.getElementById('mod-nom')?.value?.trim();
+        const prenom = document.getElementById('mod-prenom')?.value?.trim();
+        const date_naissance = document.getElementById('mod-date')?.value;
+        const genre = document.getElementById('mod-genre')?.value;
+        const adresse = document.getElementById('mod-adresse')?.value?.trim();
+        if (!nom || !prenom || !date_naissance || !genre) { this.ouvrirAlert('Champs requis', 'Veuillez remplir tous les champs obligatoires.', 'warning'); return; }
+        try { const r = await apiPut(`/eleves/${this.id}`, { nom, prenom, date_naissance, genre, adresse }); if (r.success) { document.getElementById('modal-modifier')?.remove(); await this.render(); } else this.ouvrirAlert('Erreur', r.message || 'Échec', 'error'); }
+        catch(e) { this.ouvrirAlert('Erreur', e.message, 'error'); }
+    }
+
     // ==================== AJOUT RESPONSABLE ====================
     ouvrirModalAjouterResponsable(eleveId) {
-        if (this.responsablesExistants >= 3) { this.ouvrirAlert('Limite atteinte', 'Maximum 3 responsables autorisés.', 'warning'); return; }
+        const responsables = this.eleveData?.responsables || [];
+        if (responsables.length >= 3) { this.ouvrirAlert('Limite atteinte', 'Maximum 3 responsables autorisés.', 'warning'); return; }
         const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-ajout-resp';
         overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
         overlay.innerHTML = `<div class="modal" onclick="event.stopPropagation()"><div class="modal-header"><h3><i class="fas fa-user-plus"></i> Ajouter un responsable</h3><button class="modal-close" onclick="document.getElementById('modal-ajout-resp').remove()"><i class="fas fa-times"></i></button></div>
@@ -61,16 +98,24 @@ class ProfilElevePage {
         const nom_complet = document.getElementById('resp-nom')?.value?.trim();
         const lien_parente = document.getElementById('resp-lien')?.value;
         if (!nom_complet || !lien_parente) { this.ouvrirAlert('Champs requis', 'Nom et lien sont obligatoires.', 'warning'); return; }
-        const telephone = document.getElementById('resp-tel')?.value?.trim() || null;
-        const whatsapp = document.getElementById('resp-whatsapp')?.value?.trim() || null;
-        const email = document.getElementById('resp-email')?.value?.trim() || null;
-        try {
-            const r = await apiPost('/eleves/responsable', { eleve_id: eleveId, nom_complet, lien_parente, telephone, whatsapp, email });
-            if (r.success) { document.getElementById('modal-ajout-resp')?.remove(); await this.render(); }
-            else this.ouvrirAlert('Erreur', r.message || 'Échec', 'error');
-        } catch(e) { this.ouvrirAlert('Erreur', e.message, 'error'); }
+        try { const r = await apiPost('/eleves/responsable', { eleve_id: eleveId, nom_complet, lien_parente, telephone: document.getElementById('resp-tel')?.value?.trim()||null, whatsapp: document.getElementById('resp-whatsapp')?.value?.trim()||null, email: document.getElementById('resp-email')?.value?.trim()||null }); if (r.success) { document.getElementById('modal-ajout-resp')?.remove(); await this.render(); } else this.ouvrirAlert('Erreur', r.message||'Échec','error'); }
+        catch(e) { this.ouvrirAlert('Erreur', e.message, 'error'); }
     }
 
+    // ==================== SUPPRIMER RESPONSABLE ====================
+    confirmerSuppressionResponsable(responsableId, nom) {
+        const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-confirm-suppr-resp'; overlay.style.zIndex = '1300';
+        overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+        overlay.innerHTML = `<div class="modal" style="max-width:400px;text-align:center" onclick="event.stopPropagation()"><div class="modal-body" style="padding:2rem"><i class="fas fa-exclamation-triangle" style="font-size:2.5rem;color:var(--danger);margin-bottom:0.75rem;display:block"></i><h3>Supprimer le responsable</h3><p style="color:var(--text-secondary);margin-top:0.5rem">Voulez-vous vraiment supprimer <strong>${nom}</strong> ?</p><div style="display:flex;gap:0.5rem;margin-top:1.5rem"><button class="btn btn-ghost btn-full" onclick="document.getElementById('modal-confirm-suppr-resp').remove()">Annuler</button><button class="btn btn-danger btn-full" onclick="profilEleve.supprimerResponsable(${responsableId})"><i class="fas fa-trash"></i> Supprimer</button></div></div></div>`;
+        document.body.appendChild(overlay);
+    }
+
+    async supprimerResponsable(responsableId) {
+        try { const r = await apiDelete(`/eleves/responsable/${responsableId}`); if (r.success) { document.getElementById('modal-confirm-suppr-resp')?.remove(); await this.render(); } else this.ouvrirAlert('Erreur', r.message||'Échec','error'); }
+        catch(e) { this.ouvrirAlert('Erreur', e.message, 'error'); }
+    }
+
+    // ==================== ALERTE ====================
     ouvrirAlert(titre,message,type){
         const overlay=document.createElement('div');overlay.className='modal-overlay';overlay.style.zIndex='2000';overlay.id='alert-'+Date.now();
         overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};

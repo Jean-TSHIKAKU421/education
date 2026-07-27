@@ -54,4 +54,21 @@ router.post('/responsable', async (req, res) => {
     } catch(e) { res.status(500).json({ success: false, error: e.message }); }
 });
 
+router.delete('/responsable/:id', async (req, res) => {
+    try {
+        const [result] = await pool.query('DELETE FROM responsables WHERE id = ?', [req.params.id]);
+        if (result.affectedRows === 0) return res.status(404).json({ success: false, message: 'Responsable non trouvé' });
+        res.json({ success: true, message: 'Responsable supprimé' });
+    } catch(e) { res.status(500).json({ success: false, error: e.message }); }
+});
+
+router.put('/:id', async (req, res) => {
+    try {
+        const { nom, prenom, date_naissance, genre, adresse } = req.body;
+        const [result] = await pool.query('UPDATE eleves SET nom=?, prenom=?, date_naissance=?, genre=?, adresse=? WHERE id=?', [nom, prenom, date_naissance, genre, adresse||null, req.params.id]);
+        if (result.affectedRows === 0) return res.status(404).json({ success: false, message: 'Élève non trouvé' });
+        res.json({ success: true, message: 'Élève modifié avec succès' });
+    } catch(e) { res.status(500).json({ success: false, error: e.message }); }
+});
+
 module.exports = router;

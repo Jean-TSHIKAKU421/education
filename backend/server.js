@@ -180,10 +180,10 @@ app.listen(PORT, () => {
     console.log('='.repeat(60));
     console.log('🏫  EduManage - API Gestion Scolaire');
     console.log('='.repeat(60));
-    console.log(`✅ Serveur démarré sur : http://localhost:${PORT}`);
-    console.log(`📚 Documentation API : http://localhost:${PORT}`);
-    console.log(`🧪 Test API : http://localhost:${PORT}/api/test`);
-    console.log(`🔑 Login test : POST http://localhost:${PORT}/api/auth/login`);
+    console.log(`✅ Serveur démarré sur : http://${LOCAL_IP}:${PORT}`);
+    console.log(`📚 Documentation API : http://${LOCAL_IP}:${PORT}`);
+    console.log(`🧪 Test API : http://${LOCAL_IP}:${PORT}/api/test`);
+    console.log(`🔑 Login test : POST http://${LOCAL_IP}:${PORT}/api/auth/login`);
     console.log('='.repeat(60));
     console.log('✨ Prêt à gérer votre établissement !');
     console.log('='.repeat(60));
