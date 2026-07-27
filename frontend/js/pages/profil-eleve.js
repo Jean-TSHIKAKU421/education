@@ -111,23 +111,23 @@ class ProfilElevePage {
 
     // ==================== EMPREINTE ====================
     async enregistrerEmpreinte(eleveId) {
-        if (!window.PublicKeyCredential || !navigator.credentials) {
-            const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-empreinte';
-            overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
-            overlay.innerHTML = `<div class="modal" style="max-width:400px;text-align:center" onclick="event.stopPropagation()"><div class="modal-header"><h3><i class="fas fa-fingerprint"></i> Scanner l'empreinte</h3><button class="modal-close" onclick="document.getElementById('modal-empreinte').remove()"><i class="fas fa-times"></i></button></div>
-    <div class="modal-body" style="padding:2rem"><i class="fas fa-fingerprint" style="font-size:4rem;color:var(--primary);display:block;margin-bottom:1rem;animation:pulse 1.5s infinite"></i><p style="margin-bottom:1rem">Placez votre doigt sur le capteur...</p><div id="empreinte-status" style="color:var(--text-muted)">En attente...</div></div></div>`;
-            document.body.appendChild(overlay);
+        if (window.PublicKeyCredential) {
             try {
                 const challenge = new Uint8Array(32); crypto.getRandomValues(challenge);
-                const publicKey = { challenge, rp: { name: 'EduManage' }, user: { id: new Uint8Array(16), name: `eleve-${eleveId}`, displayName: `Élève ${eleveId}` }, pubKeyCredParams: [{ type: 'public-key', alg: -7 }], timeout: 120000, attestation: 'none' };
-                const credential = await navigator.credentials.create({ publicKey });
+                const credential = await navigator.credentials.create({ publicKey: { challenge, rp: { name: 'EduManage', id: window.location.hostname }, user: { id: new Uint8Array(16), name: `eleve-${eleveId}`, displayName: `Élève ${eleveId}` }, pubKeyCredParams: [{ type: 'public-key', alg: -7 }], timeout: 60000, authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' }, attestation: 'none' } });
                 const empreinteId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
                 const r = await apiPost(`/eleves/${eleveId}/empreinte`, { empreinte_digitale: empreinteId });
-                document.getElementById('modal-empreinte')?.remove();
-                if (r.success) { this.ouvrirAlert('Succès', 'Empreinte enregistrée !', 'success'); await this.render(); }
-                else this.ouvrirAlert('Erreur', r.message||'Échec','error');
-            } catch(e) { document.getElementById('modal-empreinte')?.remove(); this.ouvrirAlert('Erreur', 'Échec de la lecture. Utilisez un ID manuel.', 'warning'); }
+                if (r.success) { await this.render(); } else this.ouvrirAlert('Erreur', r.message||'Échec','error');
+                return;
+            } catch(e) { if (e.name === 'NotAllowedError') { this.ouvrirAlert('Annulé', 'Enregistrement annulé.', 'info'); return; } }
         }
+        const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-empreinte';
+        overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+        overlay.innerHTML = `<div class="modal" style="max-width:400px;text-align:center" onclick="event.stopPropagation()"><div class="modal-header"><h3><i class="fas fa-fingerprint"></i> Enregistrer l'empreinte</h3><button class="modal-close" onclick="document.getElementById('modal-empreinte').remove()"><i class="fas fa-times"></i></button></div>
+  <div class="modal-body" style="padding:2rem"><i class="fas fa-fingerprint" style="font-size:4rem;color:var(--primary);display:block;margin-bottom:1rem;animation:pulse 1.5s infinite"></i><p style="margin-bottom:1rem">Lecteur non détecté. Entrez un ID d'empreinte :</p>
+    <div class="input-group"><div class="input-wrapper"><i class="fas fa-id-card input-icon"></i><input type="text" class="form-input" id="empreinte-id" placeholder="Ex: EMP-001"></div></div>
+    <button class="btn btn-primary btn-full" style="margin-top:1rem" onclick="profilEleve.simulerEmpreinte(${eleveId})"><i class="fas fa-check"></i> Enregistrer</button></div></div>`;
+        document.body.appendChild(overlay);
     }
 
     async simulerEmpreinte(eleveId) {
