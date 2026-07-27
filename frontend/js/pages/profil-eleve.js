@@ -20,6 +20,7 @@ class ProfilElevePage {
     <div class="profil-section"><h3><i class="fas fa-qrcode"></i> Carte d'identité</h3><div style="text-align:center;padding:1rem">${e.qr_code?`<img src="${e.qr_code}" alt="QR Code" style="width:160px;height:160px;border-radius:var(--radius);background:white;padding:0.5rem"><div style="margin-top:0.75rem;display:flex;gap:0.5rem;justify-content:center"><button class="btn btn-sm btn-primary" onclick="window.open('${e.qr_code}')"><i class="fas fa-download"></i> Télécharger</button><button class="btn btn-sm btn-outline" onclick="window.print()"><i class="fas fa-print"></i> Imprimer</button></div>`:'<p style="color:var(--text-muted)">Aucun QR code généré</p>'}</div></div>
   </div>
   <div class="profil-section" style="margin-top:1rem"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><h3 style="margin:0"><i class="fas fa-users"></i> Responsables</h3><button class="btn btn-sm btn-primary" onclick="profilEleve.ouvrirModalAjouterResponsable(${this.id})"><i class="fas fa-plus"></i> Ajouter</button></div><div class="responsables-grid">${respHTML||'<p style="color:var(--text-muted);text-align:center;padding:1rem;grid-column:1/-1">Aucun responsable enregistré</p>'}</div></div>
+  <div class="profil-section" style="margin-top:1rem"><h3><i class="fas fa-fingerprint"></i> Empreinte digitale</h3><div style="text-align:center;padding:1rem">${e.empreinte_digitale?`<i class="fas fa-check-circle" style="font-size:3rem;color:var(--success);display:block;margin-bottom:0.5rem"></i><p style="color:var(--success);font-weight:600">Empreinte enregistrée</p><p style="color:var(--text-muted);font-size:0.8rem">ID: ${e.empreinte_digitale}</p><button class="btn btn-sm btn-danger" style="margin-top:0.75rem" onclick="profilEleve.confirmerSuppressionEmpreinte(${e.id})"><i class="fas fa-trash"></i> Supprimer</button>`:`<i class="fas fa-fingerprint" style="font-size:3rem;color:var(--text-muted);display:block;margin-bottom:0.5rem"></i><p style="color:var(--text-muted)">Aucune empreinte</p><button class="btn btn-sm btn-primary" style="margin-top:0.75rem" onclick="profilEleve.enregistrerEmpreinte(${e.id})"><i class="fas fa-fingerprint"></i> Scanner</button>`}</div></div>
   <div class="profil-section" style="margin-top:1rem"><h3><i class="fas fa-chart-bar"></i> Fréquentation</h3>
     <div style="text-align:center;padding:1rem 0"><div style="width:140px;height:140px;border-radius:50%;background:conic-gradient(${tauxColor} ${taux}%,var(--input-bg) ${taux}%);display:flex;align-items:center;justify-content:center;margin:0 auto"><div style="width:105px;height:105px;border-radius:50%;background:var(--glass);display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-size:2rem;font-weight:800;color:${tauxColor}">${taux}%</span><span style="font-size:0.7rem;color:var(--text-muted)">présence</span></div></div></div>
     <div style="display:flex;gap:1rem;justify-content:center;margin-top:0.5rem"><span style="text-align:center"><i class="fas fa-check-circle" style="color:var(--success);font-size:1.2rem"></i><div style="font-weight:700">${e.stats_presence?.presents||0}</div><div style="font-size:0.7rem;color:var(--text-muted)">présences</div></span><span style="text-align:center"><i class="fas fa-times-circle" style="color:var(--danger);font-size:1.2rem"></i><div style="font-weight:700">${e.stats_presence?.absents||0}</div><div style="font-size:0.7rem;color:var(--text-muted)">absences</div></span><span style="text-align:center"><i class="fas fa-clock" style="color:var(--warning);font-size:1.2rem"></i><div style="font-weight:700">${e.stats_presence?.retards||0}</div><div style="font-size:0.7rem;color:var(--text-muted)">retards</div></span></div>
@@ -29,7 +30,7 @@ class ProfilElevePage {
         } catch(e) { m.innerHTML = `<div style="text-align:center;padding:3rem"><i class="fas fa-exclamation-triangle" style="font-size:2.5rem;color:var(--text-muted)"></i><p>${e.message}</p></div>`; }
     }
 
-    // ==================== MODIFIER ÉLÈVE ====================
+    // ==================== MODIFIER ====================
     ouvrirModalModifier() {
         const e = this.eleveData; if (!e) return;
         const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-modifier';
@@ -41,7 +42,7 @@ class ProfilElevePage {
     <div class="input-group"><label class="input-label">Date de naissance <span class="required">*</span></label><div class="input-wrapper"><i class="fas fa-calendar input-icon"></i><input type="date" class="form-input" id="mod-date" value="${(e.date_naissance||'').split('T')[0]}" required></div></div>
     <div class="input-group"><label class="input-label">Genre <span class="required">*</span></label><div class="input-wrapper" style="cursor:pointer" onclick="profilEleve.ouvrirModalGenreModif()"><i class="fas fa-venus-mars input-icon"></i><input type="text" class="form-input" id="mod-genre-nom" readonly value="${e.genre==='M'?'Masculin':'Féminin'}" required><input type="hidden" id="mod-genre" value="${e.genre||''}"><i class="fas fa-chevron-down" style="position:absolute;right:0.8rem;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;font-size:0.8rem"></i></div></div>
     <div class="input-group"><label class="input-label">Adresse</label><div class="input-wrapper"><i class="fas fa-map-marker-alt input-icon"></i><input type="text" class="form-input" id="mod-adresse" value="${e.adresse||''}"></div></div>
-    <p style="color:var(--text-muted);font-size:0.8rem;margin-top:0.5rem"><i class="fas fa-info-circle"></i> Le matricule et la classe ne peuvent pas être modifiés.</p>
+    <p style="color:var(--text-muted);font-size:0.8rem;margin-top:0.5rem"><i class="fas fa-info-circle"></i> Matricule et classe non modifiables.</p>
   </form></div>
   <div class="modal-footer"><button class="btn btn-ghost" onclick="document.getElementById('modal-modifier').remove()">Annuler</button><button class="btn btn-primary" onclick="profilEleve.enregistrerModifications()"><i class="fas fa-save"></i> Enregistrer</button></div></div>`;
         document.body.appendChild(overlay);
@@ -56,26 +57,21 @@ class ProfilElevePage {
     }
 
     async enregistrerModifications() {
-        const nom = document.getElementById('mod-nom')?.value?.trim();
-        const prenom = document.getElementById('mod-prenom')?.value?.trim();
-        const date_naissance = document.getElementById('mod-date')?.value;
-        const genre = document.getElementById('mod-genre')?.value;
-        const adresse = document.getElementById('mod-adresse')?.value?.trim();
+        const nom = document.getElementById('mod-nom')?.value?.trim(), prenom = document.getElementById('mod-prenom')?.value?.trim(), date_naissance = document.getElementById('mod-date')?.value, genre = document.getElementById('mod-genre')?.value, adresse = document.getElementById('mod-adresse')?.value?.trim();
         if (!nom || !prenom || !date_naissance || !genre) { this.ouvrirAlert('Champs requis', 'Veuillez remplir tous les champs obligatoires.', 'warning'); return; }
-        try { const r = await apiPut(`/eleves/${this.id}`, { nom, prenom, date_naissance, genre, adresse }); if (r.success) { document.getElementById('modal-modifier')?.remove(); await this.render(); } else this.ouvrirAlert('Erreur', r.message || 'Échec', 'error'); }
+        try { const r = await apiPut(`/eleves/${this.id}`, { nom, prenom, date_naissance, genre, adresse }); if (r.success) { document.getElementById('modal-modifier')?.remove(); await this.render(); } else this.ouvrirAlert('Erreur', r.message||'Échec','error'); }
         catch(e) { this.ouvrirAlert('Erreur', e.message, 'error'); }
     }
 
-    // ==================== AJOUT RESPONSABLE ====================
+    // ==================== RESPONSABLE ====================
     ouvrirModalAjouterResponsable(eleveId) {
-        const responsables = this.eleveData?.responsables || [];
-        if (responsables.length >= 3) { this.ouvrirAlert('Limite atteinte', 'Maximum 3 responsables autorisés.', 'warning'); return; }
+        if ((this.eleveData?.responsables||[]).length >= 3) { this.ouvrirAlert('Limite', 'Maximum 3 responsables.', 'warning'); return; }
         const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-ajout-resp';
         overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
         overlay.innerHTML = `<div class="modal" onclick="event.stopPropagation()"><div class="modal-header"><h3><i class="fas fa-user-plus"></i> Ajouter un responsable</h3><button class="modal-close" onclick="document.getElementById('modal-ajout-resp').remove()"><i class="fas fa-times"></i></button></div>
   <div class="modal-body"><form onsubmit="return false">
     <div class="input-group"><label class="input-label">Nom complet <span class="required">*</span></label><div class="input-wrapper"><i class="fas fa-user input-icon"></i><input type="text" class="form-input" id="resp-nom" required></div></div>
-    <div class="input-group"><label class="input-label">Lien de parenté <span class="required">*</span></label><div class="input-wrapper" style="cursor:pointer" onclick="profilEleve.ouvrirModalLien()"><i class="fas fa-link input-icon"></i><input type="text" class="form-input" id="resp-lien-nom" readonly placeholder="Cliquer pour choisir..." required><input type="hidden" id="resp-lien" value=""><i class="fas fa-chevron-down" style="position:absolute;right:0.8rem;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;font-size:0.8rem"></i></div></div>
+    <div class="input-group"><label class="input-label">Lien <span class="required">*</span></label><div class="input-wrapper" style="cursor:pointer" onclick="profilEleve.ouvrirModalLien()"><i class="fas fa-link input-icon"></i><input type="text" class="form-input" id="resp-lien-nom" readonly placeholder="Cliquer..." required><input type="hidden" id="resp-lien" value=""><i class="fas fa-chevron-down" style="position:absolute;right:0.8rem;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;font-size:0.8rem"></i></div></div>
     <div class="input-group"><label class="input-label">Téléphone</label><div class="input-wrapper"><i class="fas fa-phone input-icon"></i><input type="tel" class="form-input" id="resp-tel"></div></div>
     <div class="input-group"><label class="input-label">WhatsApp</label><div class="input-wrapper"><i class="fab fa-whatsapp input-icon"></i><input type="tel" class="form-input" id="resp-whatsapp"></div></div>
     <div class="input-group"><label class="input-label">Email</label><div class="input-wrapper"><i class="fas fa-envelope input-icon"></i><input type="email" class="form-input" id="resp-email"></div></div>
@@ -95,27 +91,63 @@ class ProfilElevePage {
     }
 
     async ajouterResponsable(eleveId) {
-        const nom_complet = document.getElementById('resp-nom')?.value?.trim();
-        const lien_parente = document.getElementById('resp-lien')?.value;
-        if (!nom_complet || !lien_parente) { this.ouvrirAlert('Champs requis', 'Nom et lien sont obligatoires.', 'warning'); return; }
+        const nom_complet = document.getElementById('resp-nom')?.value?.trim(), lien_parente = document.getElementById('resp-lien')?.value;
+        if (!nom_complet || !lien_parente) { this.ouvrirAlert('Champs requis', 'Nom et lien obligatoires.', 'warning'); return; }
         try { const r = await apiPost('/eleves/responsable', { eleve_id: eleveId, nom_complet, lien_parente, telephone: document.getElementById('resp-tel')?.value?.trim()||null, whatsapp: document.getElementById('resp-whatsapp')?.value?.trim()||null, email: document.getElementById('resp-email')?.value?.trim()||null }); if (r.success) { document.getElementById('modal-ajout-resp')?.remove(); await this.render(); } else this.ouvrirAlert('Erreur', r.message||'Échec','error'); }
         catch(e) { this.ouvrirAlert('Erreur', e.message, 'error'); }
     }
 
-    // ==================== SUPPRIMER RESPONSABLE ====================
     confirmerSuppressionResponsable(responsableId, nom) {
-        const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-confirm-suppr-resp'; overlay.style.zIndex = '1300';
+        const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-suppr-resp'; overlay.style.zIndex = '1300';
         overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
-        overlay.innerHTML = `<div class="modal" style="max-width:400px;text-align:center" onclick="event.stopPropagation()"><div class="modal-body" style="padding:2rem"><i class="fas fa-exclamation-triangle" style="font-size:2.5rem;color:var(--danger);margin-bottom:0.75rem;display:block"></i><h3>Supprimer le responsable</h3><p style="color:var(--text-secondary);margin-top:0.5rem">Voulez-vous vraiment supprimer <strong>${nom}</strong> ?</p><div style="display:flex;gap:0.5rem;margin-top:1.5rem"><button class="btn btn-ghost btn-full" onclick="document.getElementById('modal-confirm-suppr-resp').remove()">Annuler</button><button class="btn btn-danger btn-full" onclick="profilEleve.supprimerResponsable(${responsableId})"><i class="fas fa-trash"></i> Supprimer</button></div></div></div>`;
+        overlay.innerHTML = `<div class="modal" style="max-width:400px;text-align:center" onclick="event.stopPropagation()"><div class="modal-body" style="padding:2rem"><i class="fas fa-exclamation-triangle" style="font-size:2.5rem;color:var(--danger);margin-bottom:0.75rem;display:block"></i><h3>Supprimer le responsable</h3><p style="color:var(--text-secondary);margin-top:0.5rem">Supprimer <strong>${nom}</strong> ?</p><div style="display:flex;gap:0.5rem;margin-top:1.5rem"><button class="btn btn-ghost btn-full" onclick="document.getElementById('modal-suppr-resp').remove()">Annuler</button><button class="btn btn-danger btn-full" onclick="profilEleve.supprimerResponsable(${responsableId})"><i class="fas fa-trash"></i> Supprimer</button></div></div></div>`;
         document.body.appendChild(overlay);
     }
 
     async supprimerResponsable(responsableId) {
-        try { const r = await apiDelete(`/eleves/responsable/${responsableId}`); if (r.success) { document.getElementById('modal-confirm-suppr-resp')?.remove(); await this.render(); } else this.ouvrirAlert('Erreur', r.message||'Échec','error'); }
+        try { const r = await apiDelete(`/eleves/responsable/${responsableId}`); if (r.success) { document.getElementById('modal-suppr-resp')?.remove(); await this.render(); } else this.ouvrirAlert('Erreur', r.message||'Échec','error'); }
         catch(e) { this.ouvrirAlert('Erreur', e.message, 'error'); }
     }
 
-    // ==================== ALERTE ====================
+    // ==================== EMPREINTE ====================
+    async enregistrerEmpreinte(eleveId) {
+        if (!window.PublicKeyCredential || !navigator.credentials) {
+            const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-empreinte';
+            overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+            overlay.innerHTML = `<div class="modal" style="max-width:400px;text-align:center" onclick="event.stopPropagation()"><div class="modal-header"><h3><i class="fas fa-fingerprint"></i> Scanner l'empreinte</h3><button class="modal-close" onclick="document.getElementById('modal-empreinte').remove()"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body" style="padding:2rem"><i class="fas fa-fingerprint" style="font-size:4rem;color:var(--primary);display:block;margin-bottom:1rem;animation:pulse 1.5s infinite"></i><p style="margin-bottom:1rem">Placez votre doigt sur le capteur...</p><div id="empreinte-status" style="color:var(--text-muted)">En attente...</div></div></div>`;
+            document.body.appendChild(overlay);
+            try {
+                const challenge = new Uint8Array(32); crypto.getRandomValues(challenge);
+                const publicKey = { challenge, rp: { name: 'EduManage' }, user: { id: new Uint8Array(16), name: `eleve-${eleveId}`, displayName: `Élève ${eleveId}` }, pubKeyCredParams: [{ type: 'public-key', alg: -7 }], timeout: 120000, attestation: 'none' };
+                const credential = await navigator.credentials.create({ publicKey });
+                const empreinteId = btoa(String.fromCharCode(...new Uint8Array(credential.rawId)));
+                const r = await apiPost(`/eleves/${eleveId}/empreinte`, { empreinte_digitale: empreinteId });
+                document.getElementById('modal-empreinte')?.remove();
+                if (r.success) { this.ouvrirAlert('Succès', 'Empreinte enregistrée !', 'success'); await this.render(); }
+                else this.ouvrirAlert('Erreur', r.message||'Échec','error');
+            } catch(e) { document.getElementById('modal-empreinte')?.remove(); this.ouvrirAlert('Erreur', 'Échec de la lecture. Utilisez un ID manuel.', 'warning'); }
+        }
+    }
+
+    async simulerEmpreinte(eleveId) {
+        const empreinteId = document.getElementById('empreinte-id')?.value?.trim() || ('EMP-' + Date.now());
+        try { const r = await apiPost(`/eleves/${eleveId}/empreinte`, { empreinte_digitale: empreinteId }); if (r.success) { document.getElementById('modal-empreinte')?.remove(); await this.render(); } else this.ouvrirAlert('Erreur', r.message||'Échec','error'); }
+        catch(e) { this.ouvrirAlert('Erreur', e.message, 'error'); }
+    }
+
+    confirmerSuppressionEmpreinte(eleveId) {
+        const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-suppr-emp'; overlay.style.zIndex = '1300';
+        overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+        overlay.innerHTML = `<div class="modal" style="max-width:400px;text-align:center" onclick="event.stopPropagation()"><div class="modal-body" style="padding:2rem"><i class="fas fa-exclamation-triangle" style="font-size:2.5rem;color:var(--danger);margin-bottom:0.75rem;display:block"></i><h3>Supprimer l'empreinte</h3><p style="color:var(--text-secondary);margin-top:0.5rem">Voulez-vous vraiment supprimer cette empreinte ?</p><div style="display:flex;gap:0.5rem;margin-top:1.5rem"><button class="btn btn-ghost btn-full" onclick="document.getElementById('modal-suppr-emp').remove()">Annuler</button><button class="btn btn-danger btn-full" onclick="profilEleve.supprimerEmpreinte(${eleveId})"><i class="fas fa-trash"></i> Supprimer</button></div></div></div>`;
+        document.body.appendChild(overlay);
+    }
+
+    async supprimerEmpreinte(eleveId) {
+        try { const r = await apiDelete(`/eleves/${eleveId}/empreinte`); if (r.success) { document.getElementById('modal-suppr-emp')?.remove(); await this.render(); } else this.ouvrirAlert('Erreur', r.message||'Échec','error'); }
+        catch(e) { this.ouvrirAlert('Erreur', e.message, 'error'); }
+    }
+
     ouvrirAlert(titre,message,type){
         const overlay=document.createElement('div');overlay.className='modal-overlay';overlay.style.zIndex='2000';overlay.id='alert-'+Date.now();
         overlay.onclick=e=>{if(e.target===overlay)overlay.remove();};

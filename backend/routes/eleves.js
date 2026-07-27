@@ -71,4 +71,21 @@ router.put('/:id', async (req, res) => {
     } catch(e) { res.status(500).json({ success: false, error: e.message }); }
 });
 
+router.post('/:id/empreinte', async (req, res) => {
+    try {
+        const { empreinte_digitale } = req.body;
+        const [r] = await pool.query('UPDATE eleves SET empreinte_digitale=? WHERE id=?', [empreinte_digitale, req.params.id]);
+        if (r.affectedRows===0) return res.status(404).json({success:false, message:'Élève non trouvé'});
+        res.json({success:true, message:'Empreinte enregistrée'});
+    } catch(e) { res.status(500).json({success:false, error:e.message}); }
+});
+
+router.delete('/:id/empreinte', async (req, res) => {
+    try {
+        const [r] = await pool.query('UPDATE eleves SET empreinte_digitale=NULL WHERE id=?', [req.params.id]);
+        if (r.affectedRows===0) return res.status(404).json({success:false, message:'Élève non trouvé'});
+        res.json({success:true, message:'Empreinte supprimée'});
+    } catch(e) { res.status(500).json({success:false, error:e.message}); }
+});
+
 module.exports = router;
