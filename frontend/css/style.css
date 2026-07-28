@@ -55,7 +55,7 @@ a { text-decoration: none; color: inherit; }
 .select-wrapper { position: relative; }
 .select-arrow { position: absolute; right: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; font-size: 0.7rem; }
 
-.ui-card { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: var(--radius-xl); overflow: hidden; transition: var(--transition); position: relative;}
+.ui-card { background: rgba(253, 249, 249, 0.767); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: var(--radius-xl); overflow: hidden; transition: var(--transition); position: relative;}
 .ui-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gradient-1); opacity: 0; transition: opacity 0.3s; }
 .ui-card span { word-break: break-word; }
 .card-hoverable:hover::before { opacity: 1; }
@@ -128,7 +128,7 @@ a { text-decoration: none; color: inherit; }
 #c {margin-top: 1rem;}
 
 body.light {
-    --bg: #f1f5f9; --glass: rgba(255,255,255,0.75); --glass-border: rgba(0,0,0,0.08);
+    --bg: white; --glass: rgba(255,255,255,0.75); --glass-border: rgba(0,0,0,0.08);
     --card-bg: rgba(255,255,255,0.85); --input-bg: rgba(0,0,0,0.03); --input-border: rgba(0,0,0,0.1);
     --text: #0f172a; --text-secondary: #475569; --text-muted: #94a3b8;
     --border: rgba(0,0,0,0.1); --modal-overlay: rgba(0,0,0,0.3);
