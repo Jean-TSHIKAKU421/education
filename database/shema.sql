@@ -191,7 +191,7 @@ ALTER TABLE `presences`
 -- Contraintes pour la table `responsables`
 --
 ALTER TABLE `responsables`
-  ADD CONSTRAINT `responsables_ibfk_1` FOREIGN KEY (`eleve_id`) REFERENCES `eleves` (`id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `responsables_ibfk_1` FOREIGN KEY (`eleve_id`) REFERENCES `eleves` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
