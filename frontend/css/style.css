@@ -55,7 +55,7 @@ a { text-decoration: none; color: inherit; }
 .select-wrapper { position: relative; }
 .select-arrow { position: absolute; right: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; font-size: 0.7rem; }
 
-.ui-card { background: rgba(253, 249, 249, 0.767); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: var(--radius-xl); overflow: hidden; transition: var(--transition); position: relative;}
+.ui-card { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: var(--radius-xl); overflow: hidden; transition: var(--transition); position: relative;}
 .ui-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--gradient-1); opacity: 0; transition: opacity 0.3s; }
 .ui-card span { word-break: break-word; }
 .card-hoverable:hover::before { opacity: 1; }
@@ -134,7 +134,7 @@ body.light {
     --border: rgba(0,0,0,0.1); --modal-overlay: rgba(0,0,0,0.3);
 }
 body.light .main-header { box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-body.light .ui-card { box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04); }
+body.light .ui-card { background-color: rgba(253, 249, 249, 0.767);box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04); }
 body.light .ui-card.card-hoverable:hover { box-shadow: 0 12px 32px rgba(0,0,0,0.12); }
 body.light .modal { box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
 body.light .dashboard-header { box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
