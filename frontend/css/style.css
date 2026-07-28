@@ -85,7 +85,7 @@ a { text-decoration: none; color: inherit; }
 .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.6s linear infinite; margin: 0 auto; }
 .search-bar { margin-bottom: 1rem; }
 .search-bar .input-wrapper { max-width: 100%; }
-.search-clear { position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 0.3rem; font-size: 0.9rem; }
+.search-clear { position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%); border: none; color: var(--text-muted); cursor: pointer; padding: 0.3rem; font-size: 0.9rem; }
 
 .dashboard-header { display: flex; align-items: center; background: var(--glass); backdrop-filter: blur(30px); border: 1px solid var(--glass-border); border-radius: var(--radius-xl); padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
 .dashboard-header img { width: 42px; height: 42px; border-radius: var(--radius); object-fit: cover; }
