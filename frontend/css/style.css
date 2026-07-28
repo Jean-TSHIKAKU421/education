@@ -16,7 +16,7 @@ body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); colo
 a { text-decoration: none; color: inherit; }
 ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
 
-.main-header { background: var(--glass); backdrop-filter: blur(30px); border-bottom: 1px solid var(--glass-border); padding: 0 1.5rem; display: flex; justify-content: space-between; align-items: center; min-height: 60px; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; }
+.main-header { background: var(--glass); backdrop-filter: blur(30px); border-bottom: 1px solid var(--glass-border); padding: 0 1.5rem; display: flex; justify-content: space-between; align-items: center; min-height: 60px; position: fixed; width: 100%; top: 0; z-index: 100; flex-wrap: wrap; }
 .header-left { display: flex; align-items: center; gap: 1.75rem; flex: 1; min-width: 0; padding: 0.6rem 0; }
 .header-info h1 { font-size: 1rem; font-weight: 700; line-height: 1.2; }
 .header-badge { font-size: 0.65rem; margin-top: 1px; }
@@ -91,7 +91,7 @@ a { text-decoration: none; color: inherit; }
 .dashboard-header img { width: 42px; height: 42px; border-radius: var(--radius); object-fit: cover; }
 .dashboard-header-center { flex: 1; text-align: center; }
 .dashboard-header-center h2 { font-size: 1.1rem; font-weight: 700; }
-.niveau-switcher { display: flex; justify-content: center; gap: 0.4rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.niveau-switcher { display: flex; justify-content: center; gap: 0.4rem; margin-bottom: 1.25rem; margin-top: 3rem; flex-wrap: wrap;  }
 .niveau-switcher .btn { border-radius: 20px; }
 .classes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
 .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
