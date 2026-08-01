@@ -18,6 +18,7 @@ class DashboardPage {
         const searchRendu = await CL.render('forms/search-bar', { id: 'search-classes', placeholder: 'Rechercher une classe...', oninput: "dashboard.filtrerClasses();var c=document.getElementById('search-classes-clear');if(c)c.style.display=this.value?'':'none'", onclear: 'dashboard.filtrerClasses()' });
         m.innerHTML = `<div class="dashboard-page">
   <div class="niveau-switcher">${this.institutions.map(i => `<button class="btn btn-sm ${i.id===inst.id?'btn-primary':'btn-ghost'}" onclick="dashboard.switchInstitution(${i.id})"><i class="fas fa-${icons[i.niveau]}"></i> ${labels[i.niveau]}</button>`).join('')}</div>
+  <button class="btn btn-sm btn-info" onclick="dashboard.scannerQR()"><i class="fas fa-qrcode"></i> Scanner QR</button>
   <div style="display:flex;justify-content:center;margin-bottom:1.25rem">
     <div class="ui-card" style="width:220px;text-align:center">
       <div class="card-body" style="padding:1.5rem">
@@ -80,4 +81,96 @@ class DashboardPage {
         if (nivEl) nivEl.innerHTML = `<i class="fas fa-${icons[this.institutionActive.niveau]}"></i> ${labels[this.institutionActive.niveau]}`;
         await this.afficher(document.getElementById('main-content'));
     }
+    
+    scannerQR() {
+        const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-qr';
+        overlay.onclick = e => { if (e.target === overlay) { this.stopScanner(); overlay.remove(); } };
+        overlay.innerHTML = `<div class="modal" style="max-width:500px" onclick="event.stopPropagation()">
+      <div class="modal-header"><h3><i class="fas fa-qrcode"></i> Scanner un QR code</h3><button class="modal-close" onclick="dashboard.stopScanner();document.getElementById('modal-qr').remove()"><i class="fas fa-times"></i></button></div>
+      <div class="modal-body" style="text-align:center">
+        <div id="qr-reader" style="width:100%;max-width:400px;margin:0 auto;border-radius:var(--radius);overflow:hidden"></div>
+        <div id="qr-result" style="display:none;margin-top:1rem;padding:1rem;background:var(--success-light);border-radius:var(--radius);color:var(--success)"><i class="fas fa-check-circle"></i> <span id="qr-result-text"></span></div>
+        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--glass-border)">
+          <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:0.5rem"><i class="fas fa-image"></i> Ou importez une image de QR code :</p>
+          <input type="file" id="qr-file-input" accept="image/*" style="display:none" onchange="dashboard.scannerFichierQR()">
+          <button class="btn btn-sm btn-primary" onclick="document.getElementById('qr-file-input').click()"><i class="fas fa-upload"></i> Choisir une image</button>
+        </div>
+      </div></div>`;
+        document.body.appendChild(overlay);
+
+        this.qrScanner = new Html5Qrcode("qr-reader");
+        this.qrScanner.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            (decodedText) => {
+                document.getElementById('qr-result').style.display = 'block';
+                document.getElementById('qr-result-text').textContent = 'QR code détecté ! Redirection...';
+                setTimeout(() => {
+                    this.stopScanner();
+                    document.getElementById('modal-qr')?.remove();
+                    this.traiterQR(decodedText);
+                }, 500);
+            },
+            () => {}
+        ).catch(() => {
+            document.getElementById('qr-reader').innerHTML = `<p style="color:var(--text-muted);padding:2rem"><i class="fas fa-camera-slash" style="font-size:2rem;display:block;margin-bottom:0.5rem"></i>Caméra non disponible<br><small>Utilisez l'import d'image ci-dessous</small></p>`;
+        });
+  }
+  scannerFichierQR() {
+    const file = document.getElementById('qr-file-input')?.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, canvas.width, canvas.height);
+            if (code) {
+                this.stopScanner();
+                document.getElementById('modal-qr')?.remove();
+                this.traiterQR(code.data);
+            } else {
+                alert('Aucun QR code détecté dans l\'image.');
+            }
+        };
+        img.onerror = () => alert('Image invalide.');
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+  async scanFromImage(blob) {
+      try {
+          const html5QrCode = new Html5Qrcode("qr-reader-temp2");
+          const div = document.createElement('div'); div.id = 'qr-reader-temp2'; div.style.display = 'none'; document.body.appendChild(div);
+          const decodedText = await html5QrCode.scanFile({file: new File([blob], 'qr.png', {type: 'image/png'})}, false);
+          html5QrCode.clear();
+          div.remove();
+          this.traiterQR(decodedText);
+      } catch(e) {
+          alert('QR code non détecté dans l\'image.');
+      }
+  }
+
+  traiterQR(decodedText) {
+      if (decodedText.includes('/#eleves/')) {
+          const id = decodedText.split('/#eleves/')[1];
+          if (id) router.navigate('eleves/' + id);
+      } else if (decodedText.includes('#eleves/')) {
+          const id = decodedText.split('#eleves/')[1];
+          if (id) router.navigate('eleves/' + id);
+      } else {
+          alert('QR code invalide');
+      }
+  }
+  stopScanner() {
+      if (this.qrScanner) {
+          try { this.qrScanner.stop().catch(() => {}); } catch(e) {}
+          this.qrScanner = null;
+      }
+  }
 }

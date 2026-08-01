@@ -106,6 +106,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/eleves', elevesRoutes);
 app.use('/api/classes', classesRoutes);
 app.use('/api/presences', presencesRoutes);
+app.use('/uploads', express.static(path.join(__dirname, '..', 'assets', 'photos')));
 
 // ==================== GESTION DES ERREURS ====================
 
