@@ -1,0 +1,77 @@
+class PointagePage {
+    async render() {
+        const m = document.getElementById('main-content');
+        m.innerHTML = `<div class="pointage-container" style="max-width:500px;margin:0 auto;margin-bottom:1rem;margin-top:7rem;text-align:center;position:relative;padding-top:3rem">
+  <button class="btn btn-ghost" onclick="pointagePage.verifierRetour()" style="position:absolute;top:0;left:0"><i class="fas fa-arrow-left"></i> Retour</button>
+  <h2 style="margin-bottom:0.5rem"><i class="fas fa-qrcode"></i> Pointage par QR Code</h2>
+  <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:1.5rem" id="pointage-heure"></p>
+  <div id="qr-reader" style="width:100%;max-width:400px;margin:0 auto;border-radius:var(--radius-xl);overflow:hidden;border:2px solid var(--glass-border)"></div>
+  <div id="pointage-resultat" style="display:none;margin-top:1.5rem;padding:1.25rem;border-radius:var(--radius-xl);animation:slideUp 0.3s ease"></div>
+  <p style="color:var(--text-muted);font-size:0.8rem;margin-top:1rem">Placez le QR code de l'élève devant la caméra</p></div>`;
+        this.mettreAJourHeure();
+        setInterval(() => this.mettreAJourHeure(), 10000);
+        await this.demarrerScannerLocal();
+    }
+    mettreAJourHeure() { const n = new Date(); const el = document.getElementById('pointage-heure'); if (el) el.innerHTML = `<i class="far fa-clock"></i> ${n.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit',second:'2-digit'})}`; }
+    
+    async demarrerScannerLocal() {
+        try {
+            this.scannerLocal = new Html5Qrcode("qr-reader");
+            await this.scannerLocal.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } },
+                async (decodedText) => {
+                    let eleveId = null;
+                    if (decodedText.includes('/#eleves/')) eleveId = decodedText.split('/#eleves/')[1];
+                    else if (decodedText.includes('#eleves/')) eleveId = decodedText.split('#eleves/')[1];
+                    else { try { const j = JSON.parse(decodedText); eleveId = j.id || j.eleve_id; } catch(e) {} }
+                    if (!eleveId) { this.afficherResultatLocal('QR invalide', 'Aucun élève trouvé.', 'error', 'times-circle', 'var(--danger)'); return; }
+                    try {
+                        const res = await API.getEleve(eleveId);
+                        if (!res.success || !res.data) { this.afficherResultatLocal('Non trouvé', 'Élève introuvable.', 'error', 'user-slash', 'var(--danger)'); return; }
+                        const e = res.data;
+                        if (e.statut && e.statut !== '?' && e.statut !== null) {
+                            this.afficherResultatLocal(`${e.prenom} ${e.nom}`, '⚠️ Vous avez déjà effectué votre pointage aujourd\'hui.', 'warning', 'exclamation-triangle', 'var(--warning)');
+                            setTimeout(() => { const r = document.getElementById('pointage-resultat'); if (r) r.style.display = 'none'; }, 3000);
+                            return;
+                        }
+                        const statut = this.determinerStatut();
+                        const labels = { present:'Présent', retard:'Retard', absent:'Absent' };
+                        const colors = { present:'var(--success)', retard:'var(--warning)', absent:'var(--danger)' };
+                        const icons = { present:'check-circle', retard:'clock', absent:'times-circle' };
+                        await API.pointerPresence({ eleve_id: eleveId, statut, methode_pointage: 'QR' });
+                        this.afficherResultatLocal(`${e.prenom} ${e.nom}`, `Classe : ${e.classe_nom||'N/A'} · Statut : <span style="color:${colors[statut]};font-weight:700">${labels[statut]}</span>`, 'success', icons[statut], colors[statut]);
+                        setTimeout(() => { const r = document.getElementById('pointage-resultat'); if (r) r.style.display = 'none'; }, 3000);
+                    } catch(e) { this.afficherResultatLocal('Erreur', 'Validation échouée.', 'error', 'times-circle', 'var(--danger)'); }
+                },
+                () => {}
+            );
+        } catch(e) {
+            document.getElementById('qr-reader').innerHTML = `<div style="padding:2rem;color:var(--text-muted);text-align:center"><i class="fas fa-camera-slash" style="font-size:2.5rem;display:block;margin-bottom:0.5rem"></i><p>Caméra non disponible</p></div>`;
+        }
+    }
+
+    afficherResultatLocal(titre, message, type, icon, color) {
+        const r = document.getElementById('pointage-resultat');
+        r.style.display = 'block';
+        r.style.background = type === 'error' ? 'var(--danger-light)' : type === 'warning' ? 'var(--warning-light)' : 'var(--success-light)';
+        r.style.border = `1px solid ${color}`;
+        r.innerHTML = `<i class="fas fa-${icon}" style="font-size:3rem;color:${color};display:block;margin-bottom:0.5rem"></i><h3 style="margin-bottom:0.25rem">${titre}</h3><p style="color:var(--text-secondary)">${message}</p>`;
+    }
+
+    determinerStatut() { const n = new Date(), t = n.getHours()*60 + n.getMinutes(); if (t < 450) return 'present'; if (t <= 630) return 'retard'; return 'absent'; }
+
+    verifierRetour() {
+        const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-auth-pointage';
+        overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+        overlay.innerHTML = `<div class="modal" style="max-width:400px" onclick="event.stopPropagation()"><div class="modal-header"><h3><i class="fas fa-lock"></i> Authentification</h3><button class="modal-close" onclick="document.getElementById('modal-auth-pointage').remove()"><i class="fas fa-times"></i></button></div>
+  <div class="modal-body"><form onsubmit="return false" autocomplete="off"><p style="color:var(--text-secondary);font-size:0.85rem;margin-bottom:1rem">Mot de passe requis pour quitter le pointage.</p><div class="input-group"><div class="input-wrapper"><i class="fas fa-key input-icon"></i><input type="password" class="form-input" id="auth-pointage-pwd" placeholder="Mot de passe" required autocomplete="off"></div></div></form></div>
+  <div class="modal-footer"><button class="btn btn-ghost" onclick="document.getElementById('modal-auth-pointage').remove()">Annuler</button><button class="btn btn-primary" onclick="pointagePage.confirmerRetour()"><i class="fas fa-check"></i> Valider</button></div></div>`;
+        document.body.appendChild(overlay);
+    }
+
+    async confirmerRetour() {
+        const p = document.getElementById('auth-pointage-pwd')?.value;
+        if (!p) return;
+        try { const u = authService.getUser(); const r = await apiPost('/auth/login', { username: u?.username || 'admin', password: p }); if (r.success) { document.getElementById('modal-auth-pointage')?.remove(); if (this.scannerLocal) { try { await this.scannerLocal.stop(); } catch(e) {} } router.navigate('dashboard'); } else alert('Mot de passe incorrect'); }
+        catch(e) { alert('Erreur: ' + e.message); }
+    }
+}

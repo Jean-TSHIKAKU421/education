@@ -31,7 +31,7 @@ INSERT INTO `classes` (`institution_id`, `nom_classe`, `niveau_detail`, `option_
 (1, ' Maternelle', '', NULL, 25),
 (1, '3ème Maternelle', '3ème', NULL, 25),
 (2, '1ère Primaire', '1ère', NULL, 35),
-(2, ' Primaire', '', NULL, 35),
+(2, '2ème Primaire', '', NULL, 35),
 (2, '3ème Primaire', '3ème', NULL, 35),
 (2, '4ème Primaire', '4ème', NULL, 35),
 (2, '5ème Primaire', '5ème', NULL, 35),
