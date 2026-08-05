@@ -108,7 +108,7 @@ class ClasseDetailPage {
             try {
                 const r = await API.createEleve({ nom: nomPostnom, prenom, date_naissance, genre, adresse, classe_id });
                 console.log('Résultat API pour', nomPostnom, ':', r);
-                if (r && r.success) { success++; imports.push(...); }
+                if (r && r.success) { success++; imports.push({ Nom: nomPostnom, Prénom: prenom, 'Date de naissance': date_naissance, Genre: genre, Adresse: adresse, Classe: nomComplet }); }
                 else { console.warn('Échec API:', r?.message || r); errors++; }
             } catch(ex) { console.error('Exception:', ex); errors++; }
             document.getElementById('import-count').textContent = i + 1;
