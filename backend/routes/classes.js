@@ -76,7 +76,43 @@ router.post('/option/secondaire', async (req, res) => {
     }
 });
 
-router.delete('/institution/:id', async (req, res) => { try { await Classe.deleteInstitution(req.params.id); res.json({ success: true, message: 'Institution supprimée' }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
+router.delete('/institution/:id', async (req, res) => {
+    const conn = await pool.getConnection();
+    try {
+        // Récupérer le niveau avant suppression
+        const [inst] = await conn.query('SELECT niveau FROM institutions WHERE id=?', [req.params.id]);
+        const niveau = inst.length ? inst[0].niveau : null;
+        
+        await conn.beginTransaction();
+        await conn.query('SET FOREIGN_KEY_CHECKS=0');
+        
+        // Supprimer présences, responsables, élèves
+        await conn.query('DELETE p FROM presences p INNER JOIN eleves e ON p.eleve_id=e.id INNER JOIN classes c ON e.classe_id=c.id WHERE c.institution_id=?', [req.params.id]);
+        await conn.query('DELETE r FROM responsables r INNER JOIN eleves e ON r.eleve_id=e.id INNER JOIN classes c ON e.classe_id=c.id WHERE c.institution_id=?', [req.params.id]);
+        await conn.query('DELETE e FROM eleves e INNER JOIN classes c ON e.classe_id=c.id WHERE c.institution_id=?', [req.params.id]);
+        
+        // Supprimer les classes
+        await conn.query('DELETE FROM classes WHERE institution_id=?', [req.params.id]);
+        
+        // Si c'est le secondaire, supprimer aussi toutes les options
+        if (niveau === 'secondaire') {
+            await conn.query('DELETE FROM options_secondaire');
+        }
+        
+        // Supprimer l'institution
+        await conn.query('DELETE FROM institutions WHERE id=?', [req.params.id]);
+        
+        await conn.query('SET @count=0'); await conn.query('UPDATE institutions SET id=@count:=@count+1 ORDER BY id'); await conn.query('ALTER TABLE institutions AUTO_INCREMENT=1');
+        if (niveau === 'secondaire') {
+            await conn.query('ALTER TABLE options_secondaire AUTO_INCREMENT=1');
+        }
+        await conn.query('SET FOREIGN_KEY_CHECKS=1');
+        await conn.commit();
+        
+        res.json({ success: true, message: 'Institution supprimée' + (niveau === 'secondaire' ? ' avec toutes les options' : '') });
+    } catch(e) { await conn.rollback(); res.status(500).json({ success: false, error: e.message }); }
+    finally { conn.release(); }
+});
 router.get('/', async (req, res) => { try { const data = await Classe.findAll(); res.json({ success: true, data }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
 router.get('/options/:institutionId/:niveauDetail', async (req, res) => { try { const data = await Classe.getOptionsByNiveau(req.params.institutionId, req.params.niveauDetail); res.json({ success: true, data }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
 router.get('/options/secondaire', async (req, res) => { try { const data = await Classe.getOptions(); res.json({ success: true, data }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
