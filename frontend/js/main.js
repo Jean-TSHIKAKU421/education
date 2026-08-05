@@ -1,4 +1,4 @@
-let dashboard, classeDetail, pointagePage;
+let dashboard, classeDetail, pointagePage, profilInstitution;
 async function initApp() {
     if (!authService.isAuth()) { window.location.href = '/login.html'; return; }
     const user = authService.getUser();
@@ -11,7 +11,7 @@ async function initApp() {
     router.add('dashboard', () => { if (pointagePage) pointagePage = null; dashboard.render(); });
     router.add('classe/:id', (p) => { classeDetail = new ClasseDetailPage(p.id); classeDetail.render(p); });
     router.add('eleves/:id', (p) => new ProfilElevePage(p.id).render());
-    router.add('profil', () => new ProfilInstitutionPage().render());
+    router.add('profil', () => { profilInstitution = new ProfilInstitutionPage(); profilInstitution.render(); });
     router.add('pointage', () => { pointagePage = new PointagePage(); pointagePage.render(); });
     const route = window.location.hash.slice(1) || 'dashboard'; router.navigate(route);
     pointageService.start();

@@ -36,10 +36,7 @@ class Classe {
         return r;
     }
 
-    static async createInstitution({ nom, niveau }) {
-        const [r] = await pool.query('INSERT INTO institutions (nom, niveau) VALUES (?,?)', [nom, niveau]);
-        return r.insertId;
-    }
+    static async createInstitution(nom, niveau) { const [r] = await pool.query('INSERT INTO institutions (nom, niveau) VALUES (?,?)', [nom, niveau]);return r.insertId;}
 
     static async createInstitutionWithOptions({ nom, options }) {
         const conn = await pool.getConnection();
