@@ -1,0 +1,74 @@
+const pool = require('../config/database');
+const QRCode = require('qrcode');
+
+class Eleve {
+    static async findByClasse(classeId) {
+        const [rows] = await pool.query(`SELECT e.id, e.matricule, e.nom, e.prenom, e.genre, e.date_naissance, p.statut, p.justification FROM eleves e LEFT JOIN presences p ON e.id=p.eleve_id AND p.date_presence=CURDATE() WHERE e.classe_id=? ORDER BY e.nom, e.prenom`, [classeId]);
+        return rows;
+    }
+
+    static async findById(id) {
+        const [eleve] = await pool.query(`SELECT e.*, c.nom_classe as classe_nom FROM eleves e LEFT JOIN classes c ON e.classe_id=c.id WHERE e.id=?`, [id]);
+        if (!eleve.length) return null;
+        const [responsables] = await pool.query('SELECT * FROM responsables WHERE eleve_id=?', [id]);
+        const [presences] = await pool.query('SELECT date_presence, statut, justification FROM presences WHERE eleve_id=? ORDER BY date_presence DESC LIMIT 30', [id]);
+        const [stats] = await pool.query(`SELECT COUNT(CASE WHEN statut='present' THEN 1 END) as presents, COUNT(CASE WHEN statut='absent' THEN 1 END) as absents, COUNT(CASE WHEN statut='retard' THEN 1 END) as retards, COUNT(*) as total FROM presences WHERE eleve_id=?`, [id]);
+        const s = stats[0];
+        return { ...eleve[0], responsables, presences, stats_presence: s, taux_presence: s.total > 0 ? ((s.presents / s.total) * 100).toFixed(1) : 0 };
+    }
+
+    static async create({ nom, prenom, date_naissance, genre, adresse, classe_id, responsables }) {
+        const conn = await pool.getConnection();
+        try {
+            const matricule = 'ELV' + Date.now();
+            const [r] = await conn.query('INSERT INTO eleves (matricule, nom, prenom, date_naissance, genre, adresse, classe_id, qr_code, date_inscription) VALUES (?,?,?,?,?,?,?,?,CURDATE())', [matricule, nom, prenom, date_naissance, genre, adresse || null, classe_id, '']);
+            const eleveId = r.insertId;
+            const qrData = `#eleves/${eleveId}`;
+            let qrCode = '';
+            try { qrCode = await QRCode.toDataURL(qrData); } catch (e) { }
+            await conn.query('UPDATE eleves SET qr_code=? WHERE id=?', [qrCode, eleveId]);
+            if (responsables && responsables.length) {
+                for (const resp of responsables) {
+                    await conn.query('INSERT INTO responsables (eleve_id, nom_complet, lien_parente, telephone, email, whatsapp) VALUES (?,?,?,?,?,?)', [eleveId, resp.nom_complet, resp.lien_parente, resp.telephone, resp.email || null, resp.whatsapp || null]);
+                }
+            }
+            return { id: eleveId, matricule, qr_code: qrCode };
+        } finally { conn.release(); }
+    }
+
+    static async update(id, { nom, prenom, date_naissance, genre, adresse, photo }) {
+        const [result] = await pool.query('UPDATE eleves SET nom=?, prenom=?, date_naissance=?, genre=?, adresse=?, photo=? WHERE id=?', [nom, prenom, date_naissance, genre, adresse || null, photo || null, id]);
+        return result.affectedRows > 0;
+    }
+
+    static async delete(id) {
+        const conn = await pool.getConnection();
+        try {
+            await conn.query('DELETE FROM presences WHERE eleve_id=?', [id]);
+            await conn.query('DELETE FROM responsables WHERE eleve_id=?', [id]);
+            const [r] = await conn.query('DELETE FROM eleves WHERE id=?', [id]);
+            return r.affectedRows > 0;
+        } finally { conn.release(); }
+    }
+
+    static async addResponsable({ eleve_id, nom_complet, lien_parente, telephone, whatsapp, email }) {
+        await pool.query('INSERT INTO responsables (eleve_id, nom_complet, lien_parente, telephone, email, whatsapp) VALUES (?,?,?,?,?,?)', [eleve_id, nom_complet, lien_parente, telephone || null, email || null, whatsapp || null]);
+    }
+
+    static async deleteResponsable(id) {
+        const [r] = await pool.query('DELETE FROM responsables WHERE id=?', [id]);
+        return r.affectedRows > 0;
+    }
+
+    static async setEmpreinte(id, empreinte_digitale) {
+        const [r] = await pool.query('UPDATE eleves SET empreinte_digitale=? WHERE id=?', [empreinte_digitale, id]);
+        return r.affectedRows > 0;
+    }
+
+    static async deleteEmpreinte(id) {
+        const [r] = await pool.query('UPDATE eleves SET empreinte_digitale=NULL WHERE id=?', [id]);
+        return r.affectedRows > 0;
+    }
+}
+
+module.exports = Eleve;
