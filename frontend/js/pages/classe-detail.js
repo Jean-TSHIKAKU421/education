@@ -46,30 +46,27 @@ class ClasseDetailPage {
                 const wb = XLSX.read(e.target.result, { type: 'array' });
                 const ws = wb.Sheets[wb.SheetNames[0]];
                 const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-                if (data.length < 7) { alert('Fichier vide ou mal formaté'); return; }
-                console.log('Ligne 7 brute:', data[6]);
-                console.log('B(1):', data[6]?.[1], 'G(6):', data[6]?.[6], 'I(8):', data[6]?.[8]);
-                // Essaie data[7] si data[6] ne contient pas le premier élève
-                const rows = data.slice(7).filter(r => r && r.length > 0 && String(r[0] || '').trim());
-                const eleves = rows.map(row => {
-                    let dateNaissance = row[7];
-                    // Convertir le nombre Excel en date
-                    if (typeof dateNaissance === 'number') {
-                        const excelDate = new Date((dateNaissance - 25569) * 86400 * 1000);
-                        dateNaissance = excelDate.toISOString().split('T')[0]; // Format YYYY-MM-DD
+                const rows = data.slice(6).filter(r => r && r.length > 0 && String(r[0] || '').trim());
+                // Arrêter si 4 lignes vides consécutives
+                const eleves = [];
+                let emptyCount = 0;
+                for (const row of rows) {
+                    if (!row || row.length === 0 || !String(row[0] || '').trim()) {
+                        emptyCount++;
+                        if (emptyCount >= 4) break;
                     } else {
-                        dateNaissance = String(dateNaissance || '').trim();
+                        emptyCount = 0;
+                        let dateNaissance = row[7];
+                        if (typeof dateNaissance === 'number') { const excelDate = new Date((dateNaissance - 25569) * 86400 * 1000); dateNaissance = excelDate.toISOString().split('T')[0]; }
+                        else dateNaissance = String(dateNaissance || '').trim();
+                        eleves.push({
+                            nom: String(row[0] || '').trim(), prenom: String(row[5] || '').trim(),
+                            'date de naissance': dateNaissance, genre: String(row[9] || '').trim(),
+                            adresse: String(row[10] || '').trim(), classe: String(row[12] || '').trim(),
+                            option: String(row[13] || '').trim()
+                        });
                     }
-                    return {
-                        nom: String(row[0] || '').trim(),
-                        prenom: String(row[5] || '').trim(),
-                        'date de naissance': dateNaissance,
-                        genre: String(row[9] || '').trim(),
-                        adresse: String(row[10] || '').trim(),
-                        classe: String(row[12] || '').trim(),
-                        option: String(row[13] || '').trim()
-                    };
-                });
+                }
                 console.log('Élèves extraits:', eleves.length, eleves[0]);
                 if (!eleves.length) { alert('Aucun élève trouvé'); return; }
                 this.afficherApercuImport(eleves);
@@ -80,12 +77,39 @@ class ClasseDetailPage {
 
     afficherApercuImport(eleves) {
         if (!eleves.length) { alert('Aucun élève'); return; }
-        const existants = this.eleves.map(e => ({ nom: (e.nom||'').toLowerCase().trim(), prenom: (e.prenom||'').toLowerCase().trim() }));console.log('Existants:', existants.slice(0, 3));console.log('À vérifier:', avecStatut.slice(0, 3).map(e => ({ nom: e._nom, prenom: e._prenom })));
-        const avecStatut = eleves.map(e => {const nomPostnom = String(e.nom||'').toLowerCase().trim();const prenom = String(e.prenom||'').toLowerCase().trim();const nom = nomPostnom.split(' ')[0];const doublon = existants.some(ex => ex.nom === nom && ex.prenom === prenom);return { ...e, doublon, _nom: nom, _prenom: prenom };});
-        const nouveaux = avecStatut.filter(e => !e.doublon);
-        const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-apercu-import'; overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
-        const lignes = avecStatut.slice(0, 100).map((e, i) => { const nomPostnom = e.nom||e.Nom||e['nom']||e['nom et postnom']||e['nom&postnom']||e.name||''; const prenom = e.prenom||e.Prenom||e.PRENOM||e.firstname||e['prénom']||''; const date = e['date de naissance']||e.date_naissance||e.birthdate||e.date||''; const genre = String(e.genre||e.Genre||e.sexe||e.Sexe||e.gender||'').toUpperCase().charAt(0); const classe = e.classe||e.Classe||e.CLASSE||''; const option = e.option||e.Option||e.OPTION||''; const badge = e.doublon ? '<span class="badge badge-warning">Existe déjà</span>' : '<span class="badge badge-success">Nouveau</span>'; return `<tr style="${e.doublon?'opacity:0.5':''}"><td>${i+1}</td><td>${nomPostnom}</td><td>${prenom}</td><td>${genre==='M'?'M':genre==='F'?'F':'?'}</td><td>${date}</td><td>${classe}${option?' - '+option:''}</td><td>${badge}</td></tr>`; }).join('');
-        overlay.innerHTML = `<div class="modal" style="max-width:750px;max-height:80vh;display:flex;flex-direction:column" onclick="event.stopPropagation()"><div class="modal-header"><h3><i class="fas fa-list"></i> Aperçu (${eleves.length} élèves)</h3><button class="modal-close" onclick="document.getElementById('modal-apercu-import').remove()"><i class="fas fa-times"></i></button></div><div class="modal-body" style="flex:1;overflow-y:auto;padding-bottom:0.5rem"><p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:1rem">🟢 ${nouveaux.length} nouveaux · 🟡 ${avecStatut.length-nouveaux.length} déjà existants</p><div class="table-container"><table class="data-table"><thead><tr><th>#</th><th>Nom & Postnom</th><th>Prénom</th><th>G</th><th>Date naiss.</th><th>Classe</th><th>Statut</th></tr></thead><tbody>${lignes}</tbody></table></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="document.getElementById('modal-apercu-import').remove()">Annuler</button><button class="btn btn-primary" onclick="window.classeDetail.importerEleves()" ${nouveaux.length===0?'disabled':''}><i class="fas fa-download"></i> Importer ${nouveaux.length} nouveaux</button></div></div>`; document.body.appendChild(overlay); window._elevesAImporter = nouveaux; 
+        // Récupérer TOUS les élèves de l'institution
+        this.verifierDoublonsGlobal(eleves).then(avecStatut => {
+            const nouveaux = avecStatut.filter(e => !e.doublon);
+            const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-apercu-import'; overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+            const lignes = avecStatut.slice(0, 100).map((e, i) => {
+                const nomPostnom = e.nom||''; const prenom = e.prenom||'';
+                const date = e['date de naissance']||''; const genre = String(e.genre||'').toUpperCase().charAt(0);
+                const classe = e.classe||''; const option = e.option||'';
+                const badge = e.doublon ? '<span class="badge badge-warning">Existe déjà</span>' : '<span class="badge badge-success">Nouveau</span>';
+                return `<tr style="${e.doublon?'opacity:0.5':''}"><td>${i+1}</td><td>${nomPostnom}</td><td>${prenom}</td><td>${genre==='M'?'M':genre==='F'?'F':'?'}</td><td>${date}</td><td>${classe}${option?' - '+option:''}</td><td>${badge}</td></tr>`;
+            }).join('');
+            overlay.innerHTML = `<div class="modal" style="max-width:750px;max-height:80vh;display:flex;flex-direction:column" onclick="event.stopPropagation()"><div class="modal-header"><h3><i class="fas fa-list"></i> Aperçu (${eleves.length} élèves)</h3><button class="modal-close" onclick="document.getElementById('modal-apercu-import').remove()"><i class="fas fa-times"></i></button></div><div class="modal-body" style="flex:1;overflow-y:auto;padding-bottom:0.5rem"><p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:1rem">🟢 ${nouveaux.length} nouveaux · 🟡 ${avecStatut.length-nouveaux.length} déjà existants (toutes classes confondues)</p><div class="table-container"><table class="data-table"><thead><tr><th>#</th><th>Nom & Postnom</th><th>Prénom</th><th>G</th><th>Date naiss.</th><th>Classe</th><th>Statut</th></tr></thead><tbody>${lignes}</tbody></table></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="document.getElementById('modal-apercu-import').remove()">Annuler</button><button class="btn btn-primary" onclick="window.classeDetail.importerEleves()" ${nouveaux.length===0?'disabled':''}><i class="fas fa-download"></i> Importer ${nouveaux.length} nouveaux</button></div></div>`; document.body.appendChild(overlay); window._elevesAImporter = nouveaux; });
+    }
+
+    async verifierDoublonsGlobal(eleves) {
+        // Récupérer tous les élèves de l'institution
+        const instId = this.classe?.institution_id || 1;
+        let allEleves = [];
+        try {
+            const cr = await apiGet(`/classes/institution/${instId}`);
+            const classes = cr.data || [];
+            for (const c of classes) {
+                const er = await apiGet(`/eleves/classe/${c.id}`);
+                if (er.data) allEleves = allEleves.concat(er.data);
+            }
+        } catch(e) { allEleves = this.eleves; }
+        const existants = allEleves.map(e => ({ nom: (e.nom||'').toLowerCase().trim(), prenom: (e.prenom||'').toLowerCase().trim() }));
+        return eleves.map(e => {
+            const nomPostnom = String(e.nom||'').toLowerCase().trim();
+            const prenom = String(e.prenom||'').toLowerCase().trim();
+            const doublon = existants.some(ex => ex.nom === nomPostnom && ex.prenom === prenom);
+            return { ...e, doublon };
+        });
     }
 
     async importerEleves() {
@@ -95,27 +119,24 @@ class ClasseDetailPage {
         let success = 0, errors = 0; const imports = [];
         for (let i = 0; i < eleves.length; i++) {
             const e = eleves[i];
-            const nomPostnom = String(e.nom||e.Nom||e['nom']||e['nom et postnom']||e['nom&postnom']||e['nom_postnom']||e.name||'').trim();
-            const prenom = String(e.prenom||e.Prenom||e.PRENOM||e.firstname||e['prénom']||'').trim();
-            const date_naissance = String(e['date de naissance']||e.date_naissance||e.birthdate||e.date||'');
-            const genreBrut = String(e.genre||e.Genre||e.sexe||e.Sexe||e.gender||'M').trim().toUpperCase();
+            const nomPostnom = String(e.nom||'').trim();
+            const prenom = String(e.prenom||'').trim();
+            const date_naissance = String(e['date de naissance']||'');
+            const genreBrut = String(e.genre||'M').trim().toUpperCase();
             const genre = (genreBrut==='F'||genreBrut==='FEMININ'||genreBrut==='FILLE')?'F':'M';
-            const adresse = String(e.adresse||e.Adresse||e.address||'').trim();
-            const classe_nom = String(e.classe||e.Classe||e.CLASSE||'').trim();
-            const option_nom = String(e.option||e.Option||e.OPTION||'').trim();
+            const adresse = String(e.adresse||'').trim();
+            const classe_nom = String(e.classe||'').trim();
+            const option_nom = String(e.option||'').trim();
             const nomComplet = option_nom ? `${classe_nom} ${option_nom}` : classe_nom;
             let classe_id = this.id;
             if (classe_nom) { try { const cr = await apiGet(`/classes/institution/${this.classe?.institution_id||1}`); const classes = cr.data||[]; const found = classes.find(c => String(c.nom_classe||'').toLowerCase() === nomComplet.toLowerCase()); if (found) classe_id = found.id; else { const found2 = classes.find(c => String(c.nom_classe||'').toLowerCase() === classe_nom.toLowerCase()); if (found2) classe_id = found2.id; } } catch(ex) {} }
-            try {
-                const r = await API.createEleve({ nom: nomPostnom, prenom, date_naissance, genre, adresse, classe_id });
-                console.log('Résultat API pour', nomPostnom, ':', r);
-                if (r && r.success) { success++; imports.push({ Nom: nomPostnom, Prénom: prenom, 'Date de naissance': date_naissance, Genre: genre, Adresse: adresse, Classe: nomComplet }); }
-                else { console.warn('Échec API:', r?.message || r); errors++; }
-            } catch(ex) { console.error('Exception:', ex); errors++; }
+            try { const r = await API.createEleve({ nom: nomPostnom, prenom, date_naissance, genre, adresse, classe_id }); if (r&&r.success) { success++; imports.push({ Nom: nomPostnom, Prénom: prenom, 'Date de naissance': date_naissance, Genre: genre, Adresse: adresse, Classe: nomComplet }); } else errors++; } catch(ex) { errors++; }
             document.getElementById('import-count').textContent = i + 1;
+            // Laisser le navigateur respirer tous les 5 élèves
+            if (i % 5 === 0) await new Promise(r => setTimeout(r, 10));
         }
         if (imports.length > 0) { try { await apiPost('/classes/ajouter-excel', { eleves: imports, classe_nom: this.classe?.nom_classe||'' }); } catch(ex) {} }
-        overlay2.innerHTML = `<div class="modal" style="max-width:400px;text-align:center" onclick="event.stopPropagation()"><div class="modal-body" style="padding:2rem"><i class="fas fa-check-circle" style="font-size:3rem;color:var(--success);margin-bottom:0.5rem;display:block"></i><h3>Import terminé</h3><p style="color:var(--text-secondary)">${success} élèves importés${errors>0?` · ${errors} erreurs`:''}</p><button class="btn btn-primary" style="margin-top:1rem;width:100%" onclick="document.getElementById('modal-progression').remove();document.getElementById('modal-apercu-import')?.remove();window.classeDetail.render()">OK</button></div></div>`;
+        overlay2.innerHTML = `<div class="modal" style="max-width:400px;text-align:center" onclick="event.stopPropagation()"><div class="modal-body" style="padding:2rem"><i class="fas fa-check-circle" style="font-size:3rem;color:var(--success);margin-bottom:0.5rem;display:block"></i><h3>Import terminé</h3><p style="color:var(--text-secondary)">${success} élèves importés${errors>0?` · ${errors} erreurs`:''}</p><button class="btn btn-primary" style="margin-top:1.25rem;width:100%" onclick="document.getElementById('modal-progression').remove();document.getElementById('modal-apercu-import')?.remove();window.classeDetail.render()"><i class="fas fa-check"></i> OK</button></div></div>`;
     }
 
     // ==================== AJOUT MANUEL ====================
