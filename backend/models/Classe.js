@@ -7,8 +7,9 @@ class Classe {
     }
 
     static async findByInstitution(institutionId) {
-        const [rows] = await pool.query(`SELECT c.id, c.nom_classe, c.niveau_detail, c.option_id, o.nom as option_nom, o.code as option_code, c.capacite, COUNT(e.id) as nb_eleves FROM classes c LEFT JOIN options_secondaire o ON c.option_id=o.id LEFT JOIN eleves e ON c.id=e.classe_id WHERE c.institution_id=? GROUP BY c.id ORDER BY c.niveau_detail, c.nom_classe`, [institutionId]);
-        return rows;
+        const today = new Date().toISOString().split('T')[0];
+        const [rows] = await pool.query(`SELECT c.id, c.nom_classe, c.niveau_detail, c.option_id, o.nom as option_nom, o.code as option_code, c.capacite, COUNT(DISTINCT e.id) as nb_eleves, COUNT(DISTINCT CASE WHEN p.statut='present' THEN e.id END) as presents, COUNT(DISTINCT CASE WHEN p.statut='absent' THEN e.id END) as absents FROM classes c LEFT JOIN options_secondaire o ON c.option_id=o.id LEFT JOIN eleves e ON c.id=e.classe_id LEFT JOIN presences p ON e.id=p.eleve_id AND p.date_presence=? WHERE c.institution_id=? GROUP BY c.id ORDER BY c.niveau_detail, c.nom_classe`, [today, institutionId]);
+        return rows.map(c => ({ ...c, taux: c.nb_eleves > 0 ? ((c.presents / c.nb_eleves) * 100).toFixed(1) : '0.0' }));
     }
 
     static async findAll() {

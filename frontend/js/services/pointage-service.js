@@ -50,9 +50,23 @@ class PointageService {
         document.body.appendChild(notif);
         setTimeout(() => { notif.style.opacity = '0'; notif.style.transition = 'opacity 0.3s'; setTimeout(() => notif.remove(), 300); }, 4000);
     }
+    
     async verifierAbsencesAuto() {
-        if (typeof estJourFerie === 'function' && estJourFerie()) { console.log('📅 Jour férié'); return; }
-        try { const cr = await apiGet('/classes'); const classes = cr.data || []; for (const c of classes) { const er = await apiGet(`/eleves/classe/${c.id}`); const eleves = er.data || []; for (const e of eleves) { if (!e.statut || e.statut === null || e.statut === '?' || e.statut === '') { await API.pointerPresence({ eleve_id: e.id, statut: 'absent', methode_pointage: 'AUTO' }); } } } console.log('✅ Pointage auto'); } catch(e) { console.error('Erreur:', e); }
+        if (typeof estJourFerie === 'function' && estJourFerie()) { console.log('📅 Jour férié - pas de pointage'); return; }
+        try {
+            const cr = await apiGet('/classes');
+            const classes = cr.data || [];
+            for (const c of classes) {
+                const er = await apiGet(`/eleves/classe/${c.id}`);
+                const eleves = er.data || [];
+                for (const e of eleves) {
+                    if (!e.statut || e.statut === null || e.statut === '?' || e.statut === '') {
+                        await API.pointerPresence({ eleve_id: e.id, statut: 'absent', methode_pointage: 'AUTO' });
+                    }
+                }
+            }
+            console.log('✅ Pointage auto terminé');
+        } catch(e) { console.error('Erreur pointage auto:', e); }
     }
 }
 const pointageService = new PointageService();

@@ -16,7 +16,12 @@ async function ajouterFeuilleSiAbsente(wb, sheetName, nomInstitution, nomClasse)
 function supprimerFeuille(wb, sheetName) { /* ... identique ... */ }
 
 router.get('/institutions', async (req, res) => { try { const data = await Classe.getInstitutions(); res.json({ success: true, data }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
-router.get('/institution/:id', async (req, res) => { try { const data = await Classe.findByInstitution(req.params.id); res.json({ success: true, data }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
+router.get('/institution/:id', async (req, res) => {
+    try {
+        const data = await Classe.findByInstitution(req.params.id);
+        res.json({ success: true, data });
+    } catch(e) { res.status(500).json({ success: false, error: e.message }); }
+});
 router.put('/institution/:id', async (req, res) => { try { await Classe.updateInstitution(req.params.id, req.body); res.json({ success: true, message: 'Institution modifiée' }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
 
 router.post('/institution', async (req, res) => {
@@ -54,17 +59,21 @@ router.post('/institution', async (req, res) => {
     }
 });
 
-router.post('/institution/secondaire', async (req, res) => {
+router.post('/option/secondaire', async (req, res) => {
     try {
-        const { nom, options } = req.body;
-        const id = await Classe.createInstitutionWithOptions(nom, options);
-        const nomInst = nom || '... ... ...';
+        const { code, nom, institution_id } = req.body;
+        const optId = await Classe.createOption({ code, nom, institution_id }); // ← objet
         const wb = await getOrCreateWorkbook();
-        for (const opt of options) { for (const niv of ['1ère','2ème','3ème','4ème']) { const nc = `${niv} ${opt.nom}`; await ajouterFeuilleSiAbsente(wb, nc, nomInst, nc); } }
-        for (const n of ['7ème E.B','8ème E.B']) { await ajouterFeuilleSiAbsente(wb, n, nomInst, n); }
+        const nomInst = 'Complexe Scolaire Avenir';
+        for (const niv of ['1ère', '2ème', '3ème', '4ème']) {
+            await ajouterFeuilleSiAbsente(wb, `${niv} ${nom}`, nomInst, `${niv} ${nom}`);
+        }
         await saveWorkbook(wb);
-        res.json({ success: true, id, message: 'Secondaire créé' });
-    } catch(e) { res.status(500).json({ success: false, error: e.message }); }
+        res.json({ success: true, id: optId, message: 'Option créée' });
+    } catch(e) {
+        console.error('Erreur création option:', e);
+        res.status(500).json({ success: false, error: e.message });
+    }
 });
 
 router.delete('/institution/:id', async (req, res) => { try { await Classe.deleteInstitution(req.params.id); res.json({ success: true, message: 'Institution supprimée' }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
