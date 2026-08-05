@@ -67,17 +67,20 @@ class Classe {
     static async deleteInstitution(id) {
         const conn = await pool.getConnection();
         try {
+            const [inst] = await conn.query('SELECT niveau FROM institutions WHERE id=?', [id]);
+            const niveau = inst.length ? inst[0].niveau : null;
             await conn.beginTransaction();
             await conn.query('SET FOREIGN_KEY_CHECKS=0');
             await conn.query('DELETE p FROM presences p INNER JOIN eleves e ON p.eleve_id=e.id INNER JOIN classes c ON e.classe_id=c.id WHERE c.institution_id=?', [id]);
             await conn.query('DELETE r FROM responsables r INNER JOIN eleves e ON r.eleve_id=e.id INNER JOIN classes c ON e.classe_id=c.id WHERE c.institution_id=?', [id]);
             await conn.query('DELETE e FROM eleves e INNER JOIN classes c ON e.classe_id=c.id WHERE c.institution_id=?', [id]);
             await conn.query('DELETE FROM classes WHERE institution_id=?', [id]);
+            if (niveau === 'secondaire') { await conn.query('DELETE FROM options_secondaire'); await conn.query('ALTER TABLE options_secondaire AUTO_INCREMENT=1'); }
             await conn.query('DELETE FROM institutions WHERE id=?', [id]);
             await conn.query('SET @count=0'); await conn.query('UPDATE institutions SET id=@count:=@count+1 ORDER BY id'); await conn.query('ALTER TABLE institutions AUTO_INCREMENT=1');
             await conn.query('SET FOREIGN_KEY_CHECKS=1');
             await conn.commit();
-        } catch (e) { await conn.rollback(); throw e; }
+        } catch(e) { await conn.rollback(); throw e; }
         finally { conn.release(); }
     }
 
