@@ -86,7 +86,7 @@ CREATE TABLE IF NOT EXISTS `institutions` (
   `telephone` varchar(20) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
   `logo` varchar(255) DEFAULT '/assets/logo-ecole.png',
-  `annee_scolaire` varchar(9) DEFAULT '2024-2025',
+  `annee_scolaire` varchar(9) DEFAULT '20..-20..',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

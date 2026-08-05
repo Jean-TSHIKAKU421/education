@@ -4,7 +4,7 @@ const Classe = require('../models/Classe');
 const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
-
+const multer = require('multer');
 const XLSX_PATH = path.join(__dirname, '..', '..', 'database', 'datas.xlsx');
 
 async function getOrCreateWorkbook() { const wb = new ExcelJS.Workbook(); if (fs.existsSync(XLSX_PATH)) await wb.xlsx.readFile(XLSX_PATH); return wb; }
@@ -22,7 +22,28 @@ router.get('/institution/:id', async (req, res) => {
         res.json({ success: true, data });
     } catch(e) { res.status(500).json({ success: false, error: e.message }); }
 });
-router.put('/institution/:id', async (req, res) => { try { await Classe.updateInstitution(req.params.id, req.body); res.json({ success: true, message: 'Institution modifiée' }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
+
+const uploadLogo = multer({
+    storage: multer.diskStorage({
+        destination: path.join(__dirname, '..', '..', 'assets'),
+        filename: (req, file, cb) => {
+            const niveau = req._niveau || 'ecole';
+            const ext = path.extname(file.originalname);
+            cb(null, `logo-${niveau}${ext}`);
+        }
+    }),
+    limits: { fileSize: 5 * 1024 * 1024 }
+});
+
+router.put('/institution/:id', async (req, res, next) => {
+    try {
+        const niveau = await Classe.updateInstitution(req.params.id, req.body);
+        req._niveau = niveau; // Passer le niveau au middleware multer
+        next();
+    } catch(e) { res.status(500).json({ success: false, error: e.message }); }
+}, uploadLogo.single('logo'), (req, res) => {
+    res.json({ success: true, message: 'Institution modifiée' });
+});
 
 router.post('/institution', async (req, res) => {
     try {

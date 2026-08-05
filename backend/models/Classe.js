@@ -61,7 +61,13 @@ class Classe {
     }
 
     static async updateInstitution(id, { nom, adresse, telephone, email }) {
+        // Récupérer le niveau pour le renommage du logo
+        const [inst] = await pool.query('SELECT niveau FROM institutions WHERE id=?', [id]);
+        const niveau = inst.length ? inst[0].niveau : null;
+        
         await pool.query('UPDATE institutions SET nom=?, adresse=?, telephone=?, email=? WHERE id=?', [nom || '', adresse || null, telephone || null, email || null, id]);
+        
+        return niveau; // Retourne le niveau pour que la route puisse renommer le fichier
     }
 
     static async deleteInstitution(id) {
