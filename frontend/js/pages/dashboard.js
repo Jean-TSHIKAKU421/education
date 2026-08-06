@@ -33,39 +33,57 @@ class DashboardPage {
     ouvrirImportExcel() { const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-import-dashboard'; overlay.onclick = e => { if (e.target === overlay) overlay.remove(); }; overlay.innerHTML = `<div class="modal" style="max-width:420px;text-align:center" onclick="event.stopPropagation()"><div class="modal-header"><h3><i class="fas fa-file-excel"></i> Importation massive</h3><button class="modal-close" onclick="document.getElementById('modal-import-dashboard').remove()"><i class="fas fa-times"></i></button></div><div class="modal-body" style="padding:2rem"><p style="color:var(--text-secondary);margin-bottom:1rem">Sélectionnez un fichier Excel (.xlsx) contenant les élèves à importer.</p><p style="color:var(--text-muted);font-size:0.8rem;margin-bottom:1rem">Colonnes : Nom & Postnom, Prénom, Date de naissance, Genre, Adresse, Classe, Option</p><button class="btn btn-primary btn-full" onclick="document.getElementById('modal-import-dashboard').remove();document.getElementById('import-file-dashboard').click()"><i class="fas fa-upload"></i> Choisir un fichier</button></div></div>`; document.body.appendChild(overlay); }
     async traiterImportGlobal() {
         const file = document.getElementById('import-file-dashboard')?.files[0]; if (!file) return;
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            try {
-                const wb = XLSX.read(e.target.result, { type: 'array' }); const ws = wb.Sheets[wb.SheetNames[0]]; const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-                let lastRow = data.length - 1; while (lastRow >= 6 && (!data[lastRow] || !String(data[lastRow][0] || '').trim())) { lastRow--; }
-                if (lastRow < 6) { alert('Aucun élève trouvé'); return; }
-                const rows = data.slice(6, lastRow + 1); const eleves = [];
-                for (const row of rows) { if (!row || !String(row[0]||'').trim()) continue; let dateNaissance = row[7]; if (typeof dateNaissance === 'number') { dateNaissance = new Date((dateNaissance - 25569) * 86400 * 1000).toISOString().split('T')[0]; } else dateNaissance = String(dateNaissance||'').trim(); eleves.push({ nom: String(row[0]||'').trim(), prenom: String(row[5]||'').trim(), 'date de naissance': dateNaissance, genre: String(row[9]||'').trim(), adresse: String(row[10]||'').trim(), classe: String(row[12]||'').trim(), option: String(row[13]||'').trim() }); }
-                if (!eleves.length) { alert('Aucun élève trouvé'); return; }
+        try {
+            const eleves = await importExcelService.lireFichier(file);
+            if (!eleves.length) { alert('Aucun élève trouvé'); return; }
+            await importExcelService.chargerContexte(this.institutionActive?.id || 1);
 
-                const instId = this.institutionActive?.id || 1;
-                const cr = await apiGet(`/classes/institution/${instId}`); const classes = cr.data || [];
-                const allEleves = []; for (const c of classes) { const er = await apiGet(`/eleves/classe/${c.id}`); if (er.data) allEleves.push(...er.data); }
-                const existants = allEleves.map(e => ({ nom: (e.nom||'').toLowerCase().trim(), prenom: (e.prenom||'').toLowerCase().trim() }));
+            // Vérifier les options inconnues
+            const optionsInconnues = importExcelService.verifierOptionsInconnues();
+            let listeFinale = eleves;
+            if (optionsInconnues.length > 0) {
+                const resultat = await this.demanderCreationOptions(optionsInconnues);
+                if (resultat === 'cancel') return;
+                listeFinale = importExcelService.filtrerSansOptionsInconnues(optionsInconnues);
+            }
 
-                const overlay2 = document.createElement('div'); overlay2.className = 'modal-overlay'; overlay2.id = 'modal-progression-global';
-                overlay2.innerHTML = `<div class="modal" style="max-width:400px;text-align:center" onclick="event.stopPropagation()"><div class="modal-body" style="padding:2rem"><div class="spinner"></div><p style="margin-top:1rem">Importation... <span id="import-count-global">0</span> / ${eleves.length}</p></div></div>`; document.body.appendChild(overlay2);
+            const overlay2 = document.createElement('div'); overlay2.className = 'modal-overlay'; overlay2.id = 'modal-progression-global';
+            overlay2.innerHTML = `<div class="modal" style="max-width:400px;text-align:center" onclick="event.stopPropagation()"><div class="modal-body" style="padding:2rem"><div class="spinner"></div><p style="margin-top:1rem">Importation... <span id="import-count-global">0</span> / ${listeFinale.length}</p></div></div>`; document.body.appendChild(overlay2);
 
-                let success = 0, errors = 0, skipped = 0;
-                const processNext = (i) => {
-                    if (i >= eleves.length) { overlay2.innerHTML = `<div class="modal" style="max-width:400px;text-align:center" onclick="event.stopPropagation()"><div class="modal-body" style="padding:2rem"><i class="fas fa-check-circle" style="font-size:3rem;color:var(--success);margin-bottom:0.5rem;display:block"></i><h3>Import terminé</h3><p style="color:var(--text-secondary)">${success} importés · ${skipped} ignorés (doublons)${errors>0?` · ${errors} erreurs`:''}</p><button class="btn btn-primary" style="margin-top:1.25rem;width:100%" onclick="document.getElementById('modal-progression-global').remove();dashboard.render()"><i class="fas fa-check"></i> OK</button></div></div>`; return; }
-                    const el = eleves[i];
-                    const nomPostnom = String(el.nom||'').trim(), prenom = String(el.prenom||'').trim(), date_naissance = String(el['date de naissance']||''), genre = (String(el.genre||'M').trim().toUpperCase().charAt(0)==='F')?'F':'M', adresse = String(el.adresse||'').trim(), classe_nom = String(el.classe||'').trim(), option_nom = String(el.option||'').trim(), nomComplet = option_nom ? `${classe_nom} ${option_nom}` : classe_nom;
-                    const nomLower = nomPostnom.toLowerCase(), prenomLower = prenom.toLowerCase();
-                    if (existants.some(ex => ex.nom === nomLower && ex.prenom === prenomLower)) { skipped++; document.getElementById('import-count-global').textContent = i + 1; requestAnimationFrame(() => processNext(i + 1)); return; }
-                    let classe_id = null; const found = classes.find(c => String(c.nom_classe||'').toLowerCase()===nomComplet.toLowerCase()); if (found) classe_id=found.id; else { const f2=classes.find(c=>String(c.nom_classe||'').toLowerCase()===classe_nom.toLowerCase()); if(f2) classe_id=f2.id; }
-                    if (!classe_id) { errors++; document.getElementById('import-count-global').textContent = i + 1; requestAnimationFrame(() => processNext(i + 1)); return; }
-                    API.createEleve({ nom:nomPostnom, prenom, date_naissance, genre, adresse, classe_id }).then(r => { if (r&&r.success) success++; else errors++; }).catch(() => errors++).finally(() => { document.getElementById('import-count-global').textContent = i + 1; requestAnimationFrame(() => processNext(i + 1)); });
-                };
-                processNext(0);
-            } catch(ex) { console.error(ex); alert('Erreur lecture fichier'); }
-        };
-        reader.readAsArrayBuffer(file);
+            let success = 0, errors = 0, skipped = 0;
+            const processNext = (i) => {
+                if (i >= listeFinale.length) { overlay2.innerHTML = `<div class="modal" style="max-width:400px;text-align:center" onclick="event.stopPropagation()"><div class="modal-body" style="padding:2rem"><i class="fas fa-check-circle" style="font-size:3rem;color:var(--success);margin-bottom:0.5rem;display:block"></i><h3>Import terminé</h3><p style="color:var(--text-secondary)">${success} importés · ${skipped} ignorés${errors>0?` · ${errors} erreurs`:''}</p><button class="btn btn-primary" style="margin-top:1.25rem;width:100%" onclick="document.getElementById('modal-progression-global').remove();dashboard.render()"><i class="fas fa-check"></i> OK</button></div></div>`; return; }
+                const el = listeFinale[i];
+                const nomPostnom = String(el.nom || '').trim(), prenom = String(el.prenom || '').trim(), date_naissance = String(el['date de naissance'] || ''), genre = (String(el.genre || 'M').trim().toUpperCase().charAt(0) === 'F') ? 'F' : 'M', adresse = String(el.adresse || '').trim(), classe_nom = String(el.classe || '').trim(), option_nom = String(el.option || '').trim();
+                if (importExcelService.estDoublon(nomPostnom, prenom)) { skipped++; document.getElementById('import-count-global').textContent = i + 1; requestAnimationFrame(() => processNext(i + 1)); return; }
+                const classe_id = importExcelService.trouverClasseId(classe_nom, option_nom);
+                if (!classe_id) { errors++; document.getElementById('import-count-global').textContent = i + 1; requestAnimationFrame(() => processNext(i + 1)); return; }
+                API.createEleve({ nom: nomPostnom, prenom, date_naissance, genre, adresse, classe_id }).then(r => { if (r && r.success) success++; else errors++; }).catch(() => errors++).finally(() => { document.getElementById('import-count-global').textContent = i + 1; requestAnimationFrame(() => processNext(i + 1)); });
+            };
+            processNext(0);
+        } catch (ex) { console.error(ex); alert('Erreur: ' + ex); }
+    }
+
+    demanderCreationOptions(optionsInconnues) {
+        return new Promise((resolve) => {
+            const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-options-inconnues';
+            overlay.onclick = e => { if (e.target === overlay) { overlay.remove(); resolve('cancel'); } };
+            const lignes = optionsInconnues.map(o => `<tr><td><strong>${o.nom}</strong></td><td>${o.niveau}</td><td>${o.count} élève(s)</td></tr>`).join('');
+            overlay.innerHTML = `<div class="modal" style="max-width:550px" onclick="event.stopPropagation()"><div class="modal-header"><h3><i class="fas fa-exclamation-triangle" style="color:var(--warning)"></i> Options inconnues détectées</h3><button class="modal-close" onclick="document.getElementById('modal-options-inconnues').remove();resolve('cancel')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body"><p style="color:var(--text-secondary);margin-bottom:1rem">Ces options n'existent pas encore :</p><div class="table-container"><table class="data-table"><thead><tr><th>Option</th><th>Niveau</th><th>Élèves</th></tr></thead><tbody>${lignes}</tbody></table></div><p style="color:var(--text-muted);margin-top:1rem">Voulez-vous créer ces options maintenant ?</p></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="document.getElementById('modal-options-inconnues').remove();resolve('cancel')">Ignorer</button><button class="btn btn-primary" onclick="document.getElementById('modal-options-inconnues').remove();dashboard.creerOptionsManquantes(optionsInconnues).then(resolve)"><i class="fas fa-plus"></i> Créer les options</button></div></div>`;
+            document.body.appendChild(overlay);
+        });
+    }
+
+    async creerOptionsManquantes(optionsInconnues) {
+        const instSecondaire = this.institutions.find(i => i.niveau === 'secondaire');
+        if (!instSecondaire) { alert('Aucune institution secondaire'); return 'cancel'; }
+        for (const opt of optionsInconnues) {
+            try { await apiPost('/classes/option/secondaire', { code: opt.code, nom: opt.nom, institution_id: instSecondaire.id }); } catch (e) {}
+        }
+        alert('Options créées ! Relancez l\'import.');
+        return 'created';
     }
 
     // ==================== SCANNER QR ====================
