@@ -46,28 +46,27 @@ class ClasseDetailPage {
                 const wb = XLSX.read(e.target.result, { type: 'array' });
                 const ws = wb.Sheets[wb.SheetNames[0]];
                 const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-                const rows = data.slice(6).filter(r => r && r.length > 0 && String(r[0] || '').trim());
-                // Arrêter si 4 lignes vides consécutives
+                
+                // Trouver la dernière ligne remplie (colonne A = index 0)
+                let lastRow = data.length - 1;
+                while (lastRow >= 6 && (!data[lastRow] || !String(data[lastRow][0] || '').trim())) { lastRow--; }
+                if (lastRow < 6) { alert('Aucun élève trouvé'); return; }
+                
+                const rows = data.slice(6, lastRow + 1);
                 const eleves = [];
-                let emptyCount = 0;
                 for (const row of rows) {
-                    if (!row || row.length === 0 || !String(row[0] || '').trim()) {
-                        emptyCount++;
-                        if (emptyCount >= 4) break;
-                    } else {
-                        emptyCount = 0;
-                        let dateNaissance = row[7];
-                        if (typeof dateNaissance === 'number') { const excelDate = new Date((dateNaissance - 25569) * 86400 * 1000); dateNaissance = excelDate.toISOString().split('T')[0]; }
-                        else dateNaissance = String(dateNaissance || '').trim();
-                        eleves.push({
-                            nom: String(row[0] || '').trim(), prenom: String(row[5] || '').trim(),
-                            'date de naissance': dateNaissance, genre: String(row[9] || '').trim(),
-                            adresse: String(row[10] || '').trim(), classe: String(row[12] || '').trim(),
-                            option: String(row[13] || '').trim()
-                        });
-                    }
+                    if (!row || !String(row[0] || '').trim()) continue;
+                    let dateNaissance = row[7];
+                    if (typeof dateNaissance === 'number') { const excelDate = new Date((dateNaissance - 25569) * 86400 * 1000); dateNaissance = excelDate.toISOString().split('T')[0]; }
+                    else dateNaissance = String(dateNaissance || '').trim();
+                    eleves.push({
+                        nom: String(row[0] || '').trim(), prenom: String(row[5] || '').trim(),
+                        'date de naissance': dateNaissance, genre: String(row[9] || '').trim(),
+                        adresse: String(row[10] || '').trim(), classe: String(row[12] || '').trim(),
+                        option: String(row[13] || '').trim()
+                    });
                 }
-                console.log('Élèves extraits:', eleves.length, eleves[0]);
+                console.log('Élèves extraits:', eleves.length);
                 if (!eleves.length) { alert('Aucun élève trouvé'); return; }
                 this.afficherApercuImport(eleves);
             } catch(ex) { console.error(ex); alert('Erreur lecture fichier'); }
@@ -92,7 +91,6 @@ class ClasseDetailPage {
     }
 
     async verifierDoublonsGlobal(eleves) {
-        // Récupérer tous les élèves de l'institution
         const instId = this.classe?.institution_id || 1;
         let allEleves = [];
         try {
@@ -117,26 +115,24 @@ class ClasseDetailPage {
         const overlay2 = document.createElement('div'); overlay2.className = 'modal-overlay'; overlay2.id = 'modal-progression';
         overlay2.innerHTML = `<div class="modal" style="max-width:400px;text-align:center" onclick="event.stopPropagation()"><div class="modal-body" style="padding:2rem"><div class="spinner"></div><p style="margin-top:1rem">Importation... <span id="import-count">0</span> / ${eleves.length}</p></div></div>`; document.body.appendChild(overlay2);
         let success = 0, errors = 0; const imports = [];
-        for (let i = 0; i < eleves.length; i++) {
+        const processNext = (i) => {
+            if (i >= eleves.length) {
+                if (imports.length > 0) { apiPost('/classes/ajouter-excel', { eleves: imports, classe_nom: this.classe?.nom_classe||'' }).catch(()=>{}); }
+                overlay2.innerHTML = `<div class="modal" style="max-width:400px;text-align:center" onclick="event.stopPropagation()"><div class="modal-body" style="padding:2rem"><i class="fas fa-check-circle" style="font-size:3rem;color:var(--success);margin-bottom:0.5rem;display:block"></i><h3>Import terminé</h3><p style="color:var(--text-secondary)">${success} élèves importés${errors>0?` · ${errors} erreurs`:''}</p><button class="btn btn-primary" style="margin-top:1.25rem;width:100%" onclick="document.getElementById('modal-progression').remove();document.getElementById('modal-apercu-import')?.remove();window.classeDetail.render()"><i class="fas fa-check"></i> OK</button></div></div>`;
+                return;
+            }
             const e = eleves[i];
-            const nomPostnom = String(e.nom||'').trim();
-            const prenom = String(e.prenom||'').trim();
-            const date_naissance = String(e['date de naissance']||'');
-            const genreBrut = String(e.genre||'M').trim().toUpperCase();
-            const genre = (genreBrut==='F'||genreBrut==='FEMININ'||genreBrut==='FILLE')?'F':'M';
-            const adresse = String(e.adresse||'').trim();
-            const classe_nom = String(e.classe||'').trim();
-            const option_nom = String(e.option||'').trim();
-            const nomComplet = option_nom ? `${classe_nom} ${option_nom}` : classe_nom;
+            const nomPostnom = String(e.nom||'').trim(), prenom = String(e.prenom||'').trim(), date_naissance = String(e['date de naissance']||''), genre = (String(e.genre||'M').trim().toUpperCase().charAt(0)==='F')?'F':'M', adresse = String(e.adresse||'').trim(), classe_nom = String(e.classe||'').trim(), option_nom = String(e.option||'').trim(), nomComplet = option_nom ? `${classe_nom} ${option_nom}` : classe_nom;
             let classe_id = this.id;
-            if (classe_nom) { try { const cr = await apiGet(`/classes/institution/${this.classe?.institution_id||1}`); const classes = cr.data||[]; const found = classes.find(c => String(c.nom_classe||'').toLowerCase() === nomComplet.toLowerCase()); if (found) classe_id = found.id; else { const found2 = classes.find(c => String(c.nom_classe||'').toLowerCase() === classe_nom.toLowerCase()); if (found2) classe_id = found2.id; } } catch(ex) {} }
-            try { const r = await API.createEleve({ nom: nomPostnom, prenom, date_naissance, genre, adresse, classe_id }); if (r&&r.success) { success++; imports.push({ Nom: nomPostnom, Prénom: prenom, 'Date de naissance': date_naissance, Genre: genre, Adresse: adresse, Classe: nomComplet }); } else errors++; } catch(ex) { errors++; }
-            document.getElementById('import-count').textContent = i + 1;
-            // Laisser le navigateur respirer tous les 5 élèves
-            if (i % 5 === 0) await new Promise(r => setTimeout(r, 10));
-        }
-        if (imports.length > 0) { try { await apiPost('/classes/ajouter-excel', { eleves: imports, classe_nom: this.classe?.nom_classe||'' }); } catch(ex) {} }
-        overlay2.innerHTML = `<div class="modal" style="max-width:400px;text-align:center" onclick="event.stopPropagation()"><div class="modal-body" style="padding:2rem"><i class="fas fa-check-circle" style="font-size:3rem;color:var(--success);margin-bottom:0.5rem;display:block"></i><h3>Import terminé</h3><p style="color:var(--text-secondary)">${success} élèves importés${errors>0?` · ${errors} erreurs`:''}</p><button class="btn btn-primary" style="margin-top:1.25rem;width:100%" onclick="document.getElementById('modal-progression').remove();document.getElementById('modal-apercu-import')?.remove();window.classeDetail.render()"><i class="fas fa-check"></i> OK</button></div></div>`;
+            if (classe_nom) { apiGet(`/classes/institution/${this.classe?.institution_id||1}`).then(cr => { const classes = cr.data||[]; const found = classes.find(c => String(c.nom_classe||'').toLowerCase()===nomComplet.toLowerCase()); if (found) classe_id=found.id; else { const f2=classes.find(c=>String(c.nom_classe||'').toLowerCase()===classe_nom.toLowerCase()); if(f2) classe_id=f2.id; } }).catch(()=>{}).finally(() => continuerImport()); } else continuerImport();
+            function continuerImport() {
+                API.createEleve({ nom:nomPostnom, prenom, date_naissance, genre, adresse, classe_id }).then(r => { if (r&&r.success) { success++; imports.push({ Nom:nomPostnom, Prénom:prenom, 'Date de naissance':date_naissance, Genre:genre, Adresse:adresse, Classe:nomComplet }); } else errors++; }).catch(() => errors++).finally(() => {
+                    document.getElementById('import-count').textContent = i + 1;
+                    requestAnimationFrame(() => processNext(i + 1));
+                });
+            }
+        };
+        processNext(0);
     }
 
     // ==================== AJOUT MANUEL ====================
