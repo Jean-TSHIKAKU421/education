@@ -1,4 +1,4 @@
-const API_URL = `${window.location.protocol}//${window.location.hostname}:${window.location.port || 3443}/api`;
+const API_URL = `${window.location.protocol}//${window.location.hostname}:3000/api`;
 function $(sel) { return document.querySelector(sel); }
 function $$(sel) { return document.querySelectorAll(sel); }
 function getToken() { return localStorage.getItem('token') || sessionStorage.getItem('token'); }
