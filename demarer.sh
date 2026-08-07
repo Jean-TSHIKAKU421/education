@@ -45,32 +45,41 @@ if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "
 elif [ -f /etc/os-release ]; then
     . /etc/os-release
     OS=$ID
+    # Détection des dérivés Debian
+    case $ID in
+        kali|parrot|linuxmint|elementary|pop|zorin|mx|deepin) PKG_MANAGER="apt" ;;
+        ubuntu|debian) PKG_MANAGER="apt" ;;
+        fedora|centos|rhel|rocky|alma) PKG_MANAGER="dnf" ;;
+        arch|manjaro|endeavouros|garuda) PKG_MANAGER="pacman" ;;
+        opensuse*) PKG_MANAGER="zypper" ;;
+    esac
 elif [[ "$OSTYPE" == "darwin"* ]]; then
     OS="macos"
+    PKG_MANAGER="brew"
 fi
 
 case $OS in
-    ubuntu|debian)
-        echo -e "${GREEN}  ${CHECK} Linux ($OS)${NC}"
-        PKG_MANAGER="apt"
+    ubuntu|debian|kali|parrot|linuxmint|elementary|pop|zorin|mx|deepin)
+        echo -e "${GREEN}  ${CHECK} Linux ($OS - Debian/Ubuntu based)${NC}"
         ;;
-    fedora|centos|rhel)
-        echo -e "${GREEN}  ${CHECK} Linux ($OS)${NC}"
-        PKG_MANAGER="dnf"
+    fedora|centos|rhel|rocky|alma)
+        echo -e "${GREEN}  ${CHECK} Linux ($OS - RedHat based)${NC}"
         ;;
-    arch|manjaro)
-        echo -e "${GREEN}  ${CHECK} Linux ($OS)${NC}"
-        PKG_MANAGER="pacman"
+    arch|manjaro|endeavouros|garuda)
+        echo -e "${GREEN}  ${CHECK} Linux ($OS - Arch based)${NC}"
+        ;;
+    opensuse*)
+        echo -e "${GREEN}  ${CHECK} Linux ($OS - OpenSUSE)${NC}"
         ;;
     macos)
         echo -e "${GREEN}  ${CHECK} macOS${NC}"
-        PKG_MANAGER="brew"
         ;;
     windows)
         echo -e "${GREEN}  ${CHECK} Windows${NC}"
         ;;
     *)
-        echo -e "${YELLOW}  ${WARNING} Système : $OS${NC}"
+        echo -e "${YELLOW}  ${WARNING} Système : $OS (tentative avec apt)${NC}"
+        PKG_MANAGER="apt"
         ;;
 esac
 echo ""
@@ -102,7 +111,6 @@ if [ ! -d "node_modules" ]; then
     [ $? -eq 0 ] && echo -e "${GREEN}  ${CHECK} Packages installés${NC}" || { echo -e "${RED}  ${CROSS} Échec${NC}"; cd ..; exit 1; }
 else
     echo -e "${GREEN}  ${CHECK} Déjà installés${NC}"
-    [ package.json -nt node_modules/package.json ] 2>/dev/null && { echo -e "${CYAN}  ${ARROW} Mise à jour...${NC}"; npm install; }
 fi
 cd ..
 echo ""
@@ -112,9 +120,24 @@ echo -e "${YELLOW}${DATABASE}  Configuration MySQL...${NC}"
 
 install_mysql_linux() {
     case $PKG_MANAGER in
-        apt) sudo apt update -qq 2>/dev/null; sudo apt install -y mysql-server 2>/dev/null; sudo systemctl start mysql 2>/dev/null ;;
-        dnf) sudo dnf install -y mysql-server 2>/dev/null; sudo systemctl start mysqld 2>/dev/null ;;
-        pacman) sudo pacman -S --noconfirm mysql 2>/dev/null; sudo systemctl start mysqld 2>/dev/null ;;
+        apt)
+            echo -e "${CYAN}  ${ARROW} Installation via apt...${NC}"
+            sudo apt update -qq 2>/dev/null
+            sudo apt install -y mysql-server mariadb-server 2>/dev/null
+            sudo systemctl start mysql 2>/dev/null || sudo systemctl start mariadb 2>/dev/null
+            ;;
+        dnf)
+            sudo dnf install -y mysql-server 2>/dev/null
+            sudo systemctl start mysqld 2>/dev/null
+            ;;
+        pacman)
+            sudo pacman -S --noconfirm mysql 2>/dev/null
+            sudo systemctl start mysqld 2>/dev/null
+            ;;
+        zypper)
+            sudo zypper install -y mysql-server 2>/dev/null
+            sudo systemctl start mysql 2>/dev/null
+            ;;
     esac
 }
 
@@ -127,37 +150,28 @@ install_mysql_macos() {
 }
 
 install_mysql_windows() {
-    echo -e "${CYAN}  ${ARROW} Installation de MySQL pour Windows...${NC}"
+    echo -e "${CYAN}  ${ARROW} Installation de MySQL portable...${NC}"
     MYSQL_URL="https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-8.0.36-winx64.zip"
     MYSQL_DIR="$USERPROFILE/mysql"
-    
     if [ ! -d "$MYSQL_DIR/bin" ]; then
-        echo -e "${CYAN}  ${ARROW} Téléchargement de MySQL portable...${NC}"
         mkdir -p "$MYSQL_DIR"
         curl -L -o "$TEMP/mysql.zip" "$MYSQL_URL" 2>/dev/null
         unzip -o "$TEMP/mysql.zip" -d "$TEMP/mysql_extract" 2>/dev/null
         mv "$TEMP/mysql_extract"/*/* "$MYSQL_DIR/" 2>/dev/null
         rm -rf "$TEMP/mysql.zip" "$TEMP/mysql_extract"
-        
-        # Initialisation
-        echo -e "${CYAN}  ${ARROW} Initialisation de MySQL...${NC}"
         "$MYSQL_DIR/bin/mysqld" --initialize-insecure --datadir="$MYSQL_DIR/data" 2>/dev/null
-        
-        # Démarrage
-        echo -e "${CYAN}  ${ARROW} Démarrage de MySQL...${NC}"
-        "$MYSQL_DIR/bin/mysqld" --datadir="$MYSQL_DIR/data" --port=3306 &
-        sleep 3
-        MYSQL_CMD="$MYSQL_DIR/bin/mysql"
-    else
-        "$MYSQL_DIR/bin/mysqld" --datadir="$MYSQL_DIR/data" --port=3306 &
-        sleep 2
-        MYSQL_CMD="$MYSQL_DIR/bin/mysql"
     fi
+    "$MYSQL_DIR/bin/mysqld" --datadir="$MYSQL_DIR/data" --port=3306 &
+    sleep 3
+    MYSQL_CMD="$MYSQL_DIR/bin/mysql"
 }
 
-# Vérifier si MySQL existe
+# Vérifier si MySQL/MariaDB existe
 MYSQL_FOUND=false
 if command -v mysql &> /dev/null; then
+    MYSQL_FOUND=true
+elif command -v mariadb &> /dev/null; then
+    MYSQL_CMD="mariadb"
     MYSQL_FOUND=true
 elif [ -f "/opt/lampp/bin/mysql" ]; then
     MYSQL_CMD="/opt/lampp/bin/mysql"
@@ -173,18 +187,19 @@ fi
 
 if [ "$MYSQL_FOUND" = false ]; then
     echo -e "${YELLOW}  ${WARNING} MySQL non trouvé, installation...${NC}"
-    case $OS in
-        ubuntu|debian|fedora|centos|rhel|arch|manjaro) install_mysql_linux ;;
-        macos) install_mysql_macos ;;
-        windows) install_mysql_windows ;;
-        *) echo -e "${YELLOW}  Installation manuelle requise${NC}" ;;
+    case $PKG_MANAGER in
+        apt|dnf|pacman|zypper) install_mysql_linux ;;
+        brew) install_mysql_macos ;;
     esac
+    [ "$IS_WINDOWS" = true ] && install_mysql_windows
 else
-    echo -e "${GREEN}  ${CHECK} MySQL trouvé${NC}"
+    echo -e "${GREEN}  ${CHECK} MySQL/MariaDB trouvé${NC}"
 fi
 
 # Démarrage MySQL
 echo -e "${CYAN}  ${ARROW} Démarrage de MySQL...${NC}"
+MYSQL_STARTED=false
+
 if [ "$XAMPP_INSTALLED" = true ]; then
     sudo /opt/lampp/lampp start 2>/dev/null &
     sleep 3
@@ -192,15 +207,42 @@ elif [ "$IS_WINDOWS" = true ] && [ -f "$USERPROFILE/mysql/bin/mysqld" ]; then
     "$USERPROFILE/mysql/bin/mysqld" --datadir="$USERPROFILE/mysql/data" --port=3306 &
     sleep 2
 else
-    sudo systemctl start mysql 2>/dev/null || sudo systemctl start mysqld 2>/dev/null || sudo service mysql start 2>/dev/null || mysql.server start 2>/dev/null
-    sleep 2
+    # Essayer plusieurs méthodes
+    sudo systemctl start mysql 2>/dev/null && MYSQL_STARTED=true
+    [ "$MYSQL_STARTED" = false ] && sudo systemctl start mariadb 2>/dev/null && MYSQL_STARTED=true
+    [ "$MYSQL_STARTED" = false ] && sudo service mysql start 2>/dev/null && MYSQL_STARTED=true
+    [ "$MYSQL_STARTED" = false ] && sudo service mariadb start 2>/dev/null && MYSQL_STARTED=true
+    [ "$MYSQL_STARTED" = false ] && sudo mysqld_safe --skip-grant-tables &
+    sleep 3
 fi
 
-# Test connexion
-if $MYSQL_CMD -u root -e "SELECT 1;" &>/dev/null 2>&1; then
-    echo -e "${GREEN}  ${CHECK} MySQL en ligne${NC}"
-else
-    echo -e "${RED}  ${CROSS} Échec connexion MySQL${NC}"
+# Test connexion avec plusieurs tentatives
+echo -e "${CYAN}  ${ARROW} Test de connexion...${NC}"
+MAX_RETRIES=5
+RETRY=0
+while [ $RETRY -lt $MAX_RETRIES ]; do
+    if $MYSQL_CMD -u root -e "SELECT 1;" &>/dev/null 2>&1; then
+        echo -e "${GREEN}  ${CHECK} MySQL en ligne${NC}"
+        break
+    fi
+    # Essayer avec sudo si nécessaire
+    if sudo $MYSQL_CMD -u root -e "SELECT 1;" &>/dev/null 2>&1; then
+        MYSQL_CMD="sudo $MYSQL_CMD"
+        echo -e "${GREEN}  ${CHECK} MySQL en ligne (sudo)${NC}"
+        break
+    fi
+    RETRY=$((RETRY+1))
+    if [ $RETRY -lt $MAX_RETRIES ]; then
+        echo -e "${YELLOW}  ${WARNING} Tentative $RETRY/$MAX_RETRIES...${NC}"
+        sleep 2
+    fi
+done
+
+if [ $RETRY -ge $MAX_RETRIES ]; then
+    echo -e "${RED}  ${CROSS} Impossible de se connecter à MySQL${NC}"
+    echo -e "${YELLOW}  Vérifiez que MySQL est installé et démarré${NC}"
+    echo -e "${CYAN}  Sur Kali/Ubuntu : sudo systemctl start mysql${NC}"
+    echo -e "${CYAN}  Ou : sudo service mysql start${NC}"
     exit 1
 fi
 echo ""
