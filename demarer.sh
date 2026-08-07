@@ -22,11 +22,7 @@ echo ""
 # Node.js
 echo -e "${YELLOW}${GEAR}  Vérification Node.js...${NC}"
 if ! command -v node &> /dev/null; then
-    if [ "$IS_WINDOWS" = true ]; then
-        echo -e "${CYAN}  ${ARROW} Installation Node.js...${NC}"
-        curl -o "$TEMP/node-installer.msi" "https://nodejs.org/dist/v20.11.0/node-v20.11.0-x64.msi" 2>/dev/null
-        msiexec /i "$TEMP/node-installer.msi" /quiet /norestart 2>/dev/null
-        export PATH="$PATH:/c/Program Files/nodejs"
+    if [ "$IS_WINDOWS" = true ]; then echo -e "${CYAN}  ${ARROW} Installation Node.js...${NC}";curl -o "$TEMP/node-installer.msi" "https://nodejs.org/dist/v20.11.0/node-v20.11.0-x64.msi" 2>/dev/null;msiexec /i "$TEMP/node-installer.msi" /quiet /norestart 2>/dev/null;export PATH="$PATH:/c/Program Files/nodejs"
     else echo -e "${YELLOW}  Installez Node.js : https://nodejs.org${NC}";exit 1;fi
 fi
 echo -e "${GREEN}  ${CHECK} Node.js $(node -v)${NC}"
@@ -42,7 +38,6 @@ echo ""
 # MySQL/MariaDB/XAMPP
 echo -e "${YELLOW}${DATABASE}  Configuration base de données...${NC}"
 
-# Priorité XAMPP
 if [ -f "/opt/lampp/lampp" ]; then
     echo -e "${GREEN}  ${CHECK} XAMPP trouvé${NC}"
     echo -e "${CYAN}  ${ARROW} Démarrage XAMPP...${NC}"
@@ -55,7 +50,6 @@ elif [ -f "/usr/local/mysql/bin/mysql" ]; then
 elif [ "$IS_WINDOWS" = true ] && [ -f "$USERPROFILE/mysql/bin/mysql" ]; then
     MYSQL_CMD="$USERPROFILE/mysql/bin/mysql"
 else
-    # Pas de XAMPP, utiliser MySQL/MariaDB système
     if command -v mariadb &> /dev/null; then MYSQL_CMD="sudo mariadb"
     elif command -v mysql &> /dev/null; then MYSQL_CMD="sudo mysql"
     else
@@ -69,13 +63,12 @@ else
         esac
         command -v mariadb &> /dev/null && MYSQL_CMD="sudo mariadb" || MYSQL_CMD="sudo mysql"
     fi
-    
-    # Démarrage
     echo -e "${CYAN}  ${ARROW} Démarrage MariaDB/MySQL...${NC}"
     sudo systemctl stop mysql 2>/dev/null;sudo systemctl stop mariadb 2>/dev/null
-    sudo killall mysqld 2>/dev/null;sudo killall mariadbd 2>/dev/null;sleep 1
+    sudo killall mysqld 2>/dev/null;sudo killall mariadbd 2>/dev/null
+    sleep 1
     sudo systemctl start mariadb 2>/dev/null || sudo systemctl start mysql 2>/dev/null
-    sleep 2
+    sleep 3
     if ! sudo systemctl is-active --quiet mariadb 2>/dev/null && ! sudo systemctl is-active --quiet mysql 2>/dev/null; then
         sudo mkdir -p /var/run/mysqld 2>/dev/null;sudo chown mysql:mysql /var/run/mysqld 2>/dev/null
         sudo mariadbd-safe --skip-grant-tables --skip-networking &>/dev/null &
@@ -83,15 +76,17 @@ else
     fi
 fi
 
-# Test connexion
+# Test connexion avec délai initial
+echo -e "${CYAN}  ${ARROW} Attente démarrage (3s)...${NC}"
+sleep 3
 echo -e "${CYAN}  ${ARROW} Test connexion...${NC}"
 CONNECTED=false
 for i in {1..5}; do
     if $MYSQL_CMD -e "SELECT 1;" &>/dev/null 2>&1; then CONNECTED=true;echo -e "${GREEN}  ${CHECK} Connecté${NC}";break;fi
-    [ "$XAMPP_INSTALLED" = true ] && MYSQL_CMD="sudo /opt/lampp/bin/mysql"
+    if $MYSQL_CMD --socket=/var/run/mysqld/mysqld.sock -e "SELECT 1;" &>/dev/null 2>&1; then MYSQL_CMD="$MYSQL_CMD --socket=/var/run/mysqld/mysqld.sock";CONNECTED=true;echo -e "${GREEN}  ${CHECK} Connecté (socket)${NC}";break;fi
     [ $i -lt 5 ] && { echo -e "${YELLOW}  ${WARNING} Tentative $i/5...${NC}";sleep 2;}
 done
-[ "$CONNECTED" = false ] && { echo -e "${RED}  ${CROSS} Échec connexion. Lancez : sudo systemctl start mariadb${NC}";exit 1;}
+[ "$CONNECTED" = false ] && { echo -e "${RED}  ${CROSS} Échec connexion. Commandes : sudo systemctl start mariadb${NC}";exit 1;}
 echo ""
 
 # Base de données
