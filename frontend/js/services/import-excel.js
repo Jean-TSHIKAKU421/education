@@ -1,6 +1,8 @@
+function genererCodeOption(nom) { const mots = nom.toUpperCase().replace(/[^A-ZÀ-Ú\s]/g, '').split(/\s+/).filter(m => !['DE','DES','DU','ET','LA','LE','LES','UN','UNE','À','AU','AUX'].includes(m));if (mots.length === 1) return 'H' + mots[0].charAt(0);let code = mots.map(m => m.charAt(0)).join('');return code;}
+function rendreCodeUnique(code, codesExistants) { if (!codesExistants.includes(code)) return code;let suffix = 1;while (codesExistants.includes(code + suffix)) suffix++;return code + suffix;}
+
 class ImportExcelService {
     constructor() { this.eleves = []; this.classes = []; this.existants = []; }
-
     async lireFichier(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -28,42 +30,58 @@ class ImportExcelService {
             reader.readAsArrayBuffer(file);
         });
     }
-
     async chargerContexte(institutionId) {
         const cr = await apiGet(`/classes/institution/${institutionId}`);
         this.classes = cr.data || [];
         const allEleves = [];
-        for (const c of this.classes) { const er = await apiGet(`/eleves/classe/${c.id}`); if (er.data) allEleves.push(...er.data); }
+        for (const c of this.classes) {
+            const er = await apiGet(`/eleves/classe/${c.id}`);
+            if (er.data) allEleves.push(...er.data);
+        }
         this.existants = allEleves.map(e => ({ nom: (e.nom || '').toLowerCase().trim(), prenom: (e.prenom || '').toLowerCase().trim() }));
+        console.log('eleves après chargement:', this.eleves?.length);
     }
-
     estDoublon(nom, prenom) { const nl = nom.toLowerCase(), pl = prenom.toLowerCase(); return this.existants.some(e => e.nom === nl && e.prenom === pl); }
-
     trouverClasseId(nomClasse, optionNom) {
-        const nomComplet = optionNom ? `${nomClasse} ${optionNom}` : nomClasse;
-        let found = this.classes.find(c => String(c.nom_classe || '').toLowerCase() === nomComplet.toLowerCase());
-        if (found) return found.id;
-        found = this.classes.find(c => String(c.nom_classe || '').toLowerCase() === nomClasse.toLowerCase());
+        const classeStr = String(nomClasse || '').trim();
+        const optionStr = String(optionNom || '').trim();
+        
+        console.log('trouverClasseId - classeStr:', classeStr, 'optionStr:', optionStr);
+        console.log('Classes disponibles:', this.classes.map(c => c.nom_classe));
+        
+        if (!classeStr) return null;
+        
+        if (optionStr) {
+            const nomComplet = `${classeStr} ${optionStr}`;
+            const found = this.classes.find(c => String(c.nom_classe || '').toLowerCase() === nomComplet.toLowerCase());
+            console.log('Recherche avec option:', nomComplet, '->', found?.id);
+            if (found) return found.id;
+        }
+        
+        const found = this.classes.find(c => {
+            const nom = String(c.nom_classe || '').toLowerCase();
+            return nom === classeStr.toLowerCase() || nom.includes(classeStr.toLowerCase());
+        });
+        console.log('Recherche simple:', classeStr, '->', found?.id);
         return found ? found.id : null;
     }
 
     verifierOptionsInconnues() {
         const optionsInconnues = [];
         const optionsConnues = [...new Set(this.classes.filter(c => c.option_nom).map(c => c.option_nom.toLowerCase()))];
+        const codesExistants = this.classes.filter(c => c.option_code).map(c => c.option_code);
         for (const e of this.eleves) {
             const opt = String(e.option || '').trim();
-            if (opt && !optionsConnues.includes(opt.toLowerCase()) && !optionsInconnues.find(o => o.nom.toLowerCase() === opt.toLowerCase())) {
-                const niveau = String(e.classe || '').trim();
-                optionsInconnues.push({ nom: opt, niveau, code: opt.substring(0, 2).toUpperCase(), count: this.eleves.filter(el => String(el.option || '').trim().toLowerCase() === opt.toLowerCase()).length });
+            if (!opt) continue;
+            if (!optionsConnues.includes(opt.toLowerCase()) && !optionsInconnues.find(o => o.nom.toLowerCase() === opt.toLowerCase())) {
+                let code = genererCodeOption(opt);
+                code = rendreCodeUnique(code, [...codesExistants, ...optionsInconnues.map(o => o.code)]);
+                optionsInconnues.push({ nom: opt, niveau: String(e.classe || '').trim(), code, count: this.eleves.filter(el => String(el.option || '').trim().toLowerCase() === opt.toLowerCase()).length });
             }
         }
         return optionsInconnues;
     }
-
-    filtrerSansOptionsInconnues(optionsInconnues) {
-        const nomsInconnus = optionsInconnues.map(o => o.nom.toLowerCase());
-        return this.eleves.filter(e => !nomsInconnus.includes(String(e.option || '').trim().toLowerCase()));
-    }
+    filtrerSansOptionsInconnues(optionsInconnues) { const nomsInconnus = optionsInconnues.map(o => o.nom.toLowerCase());return this.eleves.filter(e => !nomsInconnus.includes(String(e.option || '').trim().toLowerCase()));}
 }
 
 const importExcelService = new ImportExcelService();

@@ -1,29 +1,37 @@
 class ImportExcelUI {
-    constructor(options = {}) { this.service = importExcelService; this.institutionId = options.institutionId || 1; this.classeId = options.classeId || null; this.classeNom = options.classeNom || ''; this.onComplete = options.onComplete || (() => {}); this.onOptionCreated = options.onOptionCreated || (() => {}); }
+    constructor(options = {}) { this.service = importExcelService; this.institutionId = options.institutionId || 1; this.classeId = options.classeId || null; this.classeNom = options.classeNom || ''; this.onComplete = options.onComplete || (() => {}); }
 
     async lancerImport(file) {
         try {
             const eleves = await this.service.lireFichier(file);
-            if (!eleves.length) { alert('Aucun élève trouvé dans le fichier'); return; }
+            if (!eleves.length) { this.ouvrirAlert('Aucun élève', 'Aucun élève trouvé dans le fichier.', 'warning'); return; }
             await this.service.chargerContexte(this.institutionId);
+            
             const optionsInconnues = this.service.verifierOptionsInconnues();
+            console.log('Options inconnues détectées:', optionsInconnues.length, optionsInconnues);
+            
             let listeFinale = eleves;
             if (optionsInconnues.length > 0) {
+                console.log('OPTIONS INCONNUES TROUVÉES !', optionsInconnues);
+                console.log('→ Ouverture modal options...');
                 const resultat = await this.afficherModalOptionsInconnues(optionsInconnues);
+                console.log('→ Résultat modal:', resultat);
                 if (resultat === 'cancel') return;
+                await this.service.chargerContexte(this.institutionId);
                 listeFinale = this.service.filtrerSansOptionsInconnues(optionsInconnues);
-                if (this.onOptionCreated) this.onOptionCreated();
             }
+            
             const avecStatut = listeFinale.map(e => {
                 const np = String(e.nom || '').toLowerCase().trim(), p = String(e.prenom || '').toLowerCase().trim();
                 return { ...e, doublon: this.service.existants.some(ex => ex.nom === np && ex.prenom === p) };
             });
             const nouveaux = avecStatut.filter(e => !e.doublon);
+            if (!nouveaux.length) { this.ouvrirAlert('Information', 'Tous les élèves existent déjà.', 'info'); return; }
             const ok = await this.afficherModalApercu(avecStatut, nouveaux, listeFinale.length);
             if (!ok) return;
             await this.executerImport(nouveaux);
             if (this.onComplete) this.onComplete();
-        } catch (ex) { alert('Erreur : ' + ex); }
+        } catch (ex) { this.ouvrirAlert('Erreur', ex.message || ex, 'error'); }
     }
 
     afficherModalOptionsInconnues(optionsInconnues) {
@@ -31,15 +39,9 @@ class ImportExcelUI {
             const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.id = 'modal-options-inc';
             overlay.onclick = e => { if (e.target === overlay) { overlay.remove(); resolve('cancel'); } };
             const lignes = optionsInconnues.map(o => `<tr><td><strong>${o.nom}</strong></td><td>${o.niveau}</td><td>${o.count} élève(s)</td></tr>`).join('');
-            overlay.innerHTML = `<div class="modal" style="max-width:550px" onclick="event.stopPropagation()"><div class="modal-header"><h3><i class="fas fa-exclamation-triangle" style="color:var(--warning)"></i> Options inconnues détectées</h3><button class="modal-close" onclick="document.getElementById('modal-options-inc').remove();resolve('cancel')"><i class="fas fa-times"></i></button></div><div class="modal-body"><p style="color:var(--text-secondary);margin-bottom:1rem">Ces options n'existent pas encore :</p><div class="table-container"><table class="data-table"><thead><tr><th>Option</th><th>Niveau</th><th>Élèves</th></tr></thead><tbody>${lignes}</tbody></table></div><p style="color:var(--text-muted);margin-top:1rem">Voulez-vous créer ces options ?</p></div><div class="modal-footer"><button class="btn btn-ghost" onclick="document.getElementById('modal-options-inc').remove();resolve('cancel')">Ignorer</button><button class="btn btn-primary" id="btn-creer-options-inc">Créer</button></div></div>`;
+            overlay.innerHTML = `<div class="modal" style="max-width:550px" onclick="event.stopPropagation()"><div class="modal-header"><h3><i class="fas fa-exclamation-triangle" style="color:var(--warning)"></i> Options inconnues</h3><button class="modal-close" onclick="document.getElementById('modal-options-inc').remove();resolve('cancel')"><i class="fas fa-times"></i></button></div><div class="modal-body"><p style="color:var(--text-secondary);margin-bottom:1rem">Ces options n'existent pas encore :</p><div class="table-container"><table class="data-table"><thead><tr><th>Option</th><th>Niveau</th><th>Élèves</th></tr></thead><tbody>${lignes}</tbody></table></div><p style="color:var(--text-muted);margin-top:1rem">Voulez-vous créer ces options ?</p></div><div class="modal-footer"><button class="btn btn-ghost" onclick="document.getElementById('modal-options-inc').remove();resolve('cancel')">Ignorer</button><button class="btn btn-primary" id="btn-creer-options-inc">Créer</button></div></div>`;
             document.body.appendChild(overlay);
-            document.getElementById('btn-creer-options-inc').onclick = async () => {
-                overlay.remove();
-                const instSecondaire = this.service.classes.find(c => c.option_nom) || {};
-                for (const opt of optionsInconnues) { try { await apiPost('/classes/option/secondaire', { code: opt.code, nom: opt.nom, institution_id: this.institutionId }); } catch (e) {} }
-                alert('Options créées !');
-                resolve('created');
-            };
+            document.getElementById('btn-creer-options-inc').onclick = async () => { overlay.remove(); for (const opt of optionsInconnues) { try { await apiPost('/classes/option/secondaire', { code: opt.code, nom: opt.nom, institution_id: this.institutionId }); } catch (e) {} } resolve('created'); };
         });
     }
 
@@ -63,11 +65,20 @@ class ImportExcelUI {
         let success = 0, errors = 0;
         const processNext = (i) => {
             if (i >= eleves.length) { overlay.innerHTML = `<div class="modal" style="max-width:400px;text-align:center" onclick="event.stopPropagation()"><div class="modal-body" style="padding:2rem"><i class="fas fa-check-circle" style="font-size:3rem;color:var(--success);margin-bottom:0.5rem;display:block"></i><h3>Import terminé</h3><p style="color:var(--text-secondary)">${success} élèves importés${errors > 0 ? ` · ${errors} erreurs` : ''}</p><button class="btn btn-primary" style="margin-top:1.25rem;width:100%" onclick="document.getElementById('modal-progression').remove()"><i class="fas fa-check"></i> OK</button></div></div>`; return; }
-            const e = eleves[i];
-            const nomPostnom = String(e.nom || '').trim(), prenom = String(e.prenom || '').trim(), date_naissance = String(e['date de naissance'] || ''), genre = (String(e.genre || 'M').trim().toUpperCase().charAt(0) === 'F') ? 'F' : 'M', adresse = String(e.adresse || '').trim(), classe_nom = String(e.classe || '').trim(), option_nom = String(e.option || '').trim();
+            const e = eleves[i]; const nomPostnom = String(e.nom || '').trim(), prenom = String(e.prenom || '').trim(), date_naissance = String(e['date de naissance'] || ''), genre = (String(e.genre || 'M').trim().toUpperCase().charAt(0) === 'F') ? 'F' : 'M', adresse = String(e.adresse || '').trim(), classe_nom = String(e.classe || '').trim(), option_nom = String(e.option || '').trim();
             const classe_id = this.service.trouverClasseId(classe_nom, option_nom) || this.classeId;
+            if (!classe_id) { errors++; document.getElementById('import-count').textContent = i + 1; requestAnimationFrame(() => processNext(i + 1)); return; }
             API.createEleve({ nom: nomPostnom, prenom, date_naissance, genre, adresse, classe_id }).then(r => { if (r && r.success) success++; else errors++; }).catch(() => errors++).finally(() => { document.getElementById('import-count').textContent = i + 1; requestAnimationFrame(() => processNext(i + 1)); });
         };
         processNext(0);
+    }
+
+    ouvrirAlert(titre, message, type) {
+        const overlay = document.createElement('div'); overlay.className = 'modal-overlay'; overlay.style.zIndex = '2000'; overlay.id = 'alert-' + Date.now();
+        overlay.onclick = e => { if (e.target === overlay) overlay.remove(); };
+        const icones = { error: 'exclamation-circle', success: 'check-circle', warning: 'exclamation-triangle', info: 'info-circle' };
+        const couleurs = { error: 'var(--danger)', success: 'var(--success)', warning: 'var(--warning)', info: 'var(--info)' };
+        overlay.innerHTML = `<div class="modal" style="max-width:380px;text-align:center" onclick="event.stopPropagation()"><div class="modal-body" style="padding:2rem 1.5rem"><i class="fas fa-${icones[type] || 'info-circle'}" style="font-size:2.5rem;color:${couleurs[type] || 'var(--primary)'};margin-bottom:0.75rem;display:block"></i><h3 style="margin-bottom:0.5rem">${titre}</h3><p style="color:var(--text-secondary);font-size:0.9rem">${message}</p><button class="btn btn-primary" style="margin-top:1.25rem;width:100%" onclick="document.getElementById('${overlay.id}').remove()">OK</button></div></div>`;
+        document.body.appendChild(overlay);
     }
 }
