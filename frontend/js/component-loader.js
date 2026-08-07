@@ -7,9 +7,4 @@ class ComponentLoader {
     async append(containerId, name, props = {}) { const c = document.getElementById(containerId); if (!c) return; c.insertAdjacentHTML('beforeend', await this.render(name, props)); }
 }
 const CL = new ComponentLoader();
-const UI = {
-    button: (p) => CL.render('ui/button', p), input: (p) => CL.render('ui/input', p), select: (p) => CL.render('ui/select', p),
-    modal: (p) => CL.render('ui/modal', p), card: (p) => CL.render('ui/card', p), table: (p) => CL.render('ui/table', p),
-    badge: (p) => CL.render('ui/badge', p), alert: (p) => CL.render('ui/alert', p), loader: (p) => CL.render('ui/loader', p),
-    textarea: (p) => CL.render('ui/textarea', p), listModal: (p) => CL.render('ui/list-modal', p),
-};
+const UI = {button: (p) => CL.render('ui/button', p), input: (p) => CL.render('ui/input', p), select: (p) => CL.render('ui/select', p),modal: (p) => CL.render('ui/modal', p), card: (p) => CL.render('ui/card', p), table: (p) => CL.render('ui/table', p),badge: (p) => CL.render('ui/badge', p), alert: (p) => CL.render('ui/alert', p), loader: (p) => CL.render('ui/loader', p),textarea: (p) => CL.render('ui/textarea', p), listModal: (p) => CL.render('ui/list-modal', p),};
