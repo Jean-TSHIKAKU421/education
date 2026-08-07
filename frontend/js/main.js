@@ -3,17 +3,19 @@ async function initApp() {
     if (!authService.isAuth()) { window.location.href = '/login.html'; return; }
     const user = authService.getUser();
     if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
-    try { const h = await CL.loadTemplate('/composants/layout/header.html'); document.getElementById('header-container').innerHTML = h.replace('>A<', `>${(user?.nom_complet||'A').charAt(0)}<`).replace('>Admin<', `>${user?.nom_complet||'Admin'}<`); updateThemeIcon(); updateHeaderInfo(); const roleEl=document.getElementById('header-role'); if(roleEl){const labels={super_admin:'Super Admin',admin:'Admin',secretaire:'Secrétaire'};roleEl.textContent=labels[user?.role]||user?.role||'Admin';} } catch(e) {}
-    for (const c of ['button','input','select','modal','card','table','badge','alert','loader','textarea']) { try { CL.register(`ui/${c}`, await CL.loadTemplate(`/composants/ui/${c}.html`)); } catch(e) {} }
+    const roleLabels = { super_admin: 'Super Admin', admin: 'Admin', secretaire: 'Secrétaire' };
+    document.getElementById('header-container').innerHTML = `<header class="main-header"><div class="header-left"><button class="menu-toggle" id="menu-toggle-btn" style="display:none" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button><img src="/assets/logo-ecole.png" alt="Logo" class="header-logo" id="header-logo" onerror="this.style.display='none'"><div class="header-info"><h1 id="header-institution-nom">EduManage</h1><span class="badge badge-info header-badge" id="header-institution-niveau"></span></div></div><span class="badge badge-info" id="header-role" style="font-size:0.78rem;padding:0.35rem 0.8rem">${roleLabels[user?.role] || user?.role || 'Admin'}</span><div class="header-right"><button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i></button><button class="theme-toggle" onclick="router.navigate('profil')" title="Profil"><i class="fas fa-user-circle"></i></button><button class="btn-logout" onclick="authService.logout()"><i class="fas fa-sign-out-alt"></i> <span class="hide-mobile">Quitter</span></button></div></header>`;
+    updateThemeIcon(); updateHeaderInfo();
+    const components = ['button','input','select','modal','card','table','badge','alert','loader','textarea'];
+    for (const c of components) { try { CL.register(`ui/${c}`, await CL.loadTemplate(`/composants/ui/${c}.html`)); } catch(e) {} }
     try { CL.register('forms/search-bar', await CL.loadTemplate('/composants/forms/search-bar.html')); } catch(e) {}
     try { CL.register('ui/list-modal', await CL.loadTemplate('/composants/ui/list-modal.html')); } catch(e) {}
-    dashboard = new DashboardPage();
-    router.add('dashboard', () => dashboard.render());
+    dashboard = new DashboardPage(); router.add('dashboard', () => dashboard.render());
     router.add('classe/:id', (p) => { classeDetail = new ClasseDetailPage(p.id); classeDetail.render(p); });
     router.add('eleves/:id', (p) => new ProfilElevePage(p.id).render());
     router.add('profil', () => { profilInstitution = new ProfilInstitutionPage(); profilInstitution.render(); });
     router.add('pointage', () => { pointagePage = new PointagePage(); pointagePage.render(); });
-    const route = window.location.hash.slice(1) || 'dashboard'; router.navigate(route);
+    router.navigate(window.location.hash.slice(1) || 'dashboard');
     pointageService.start();
 }
 async function updateHeaderInfo(institutionActive) { try { const res = await fetch('/api/classes/institutions').then(r => r.json()); const institutions = res.data || []; const inst = institutionActive || (institutions.length ? institutions[0] : null); if (!inst) return; const nomEl = document.getElementById('header-institution-nom'); const nivEl = document.getElementById('header-institution-niveau'); const logoEl = document.getElementById('header-logo'); if (nomEl) nomEl.textContent = inst.nom || 'EduManage'; if (nivEl) nivEl.innerHTML = `<i class="fas fa-school"></i> ${inst.niveau || ''}`; if (logoEl) { logoEl.src = inst.logo || '/assets/logo-ecole.png'; logoEl.onerror = () => { logoEl.style.display = 'none'; }; } if (inst.regime) { setRegime(inst.regime); } } catch(e) {} }

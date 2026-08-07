@@ -1,8 +1,7 @@
-<div class="search-bar" style="margin-bottom:${marginBottom || '1.5rem'}">
+<div class="search-bar" style="margin-bottom:1.5rem">
   <div class="input-wrapper">
     <i class="fas fa-search input-icon input-icon-left"></i>
-    <input type="text" class="form-input has-icon" id="${inputId || 'search-input-' + (Date.now())}" placeholder="${placeholder || 'Rechercher...'}" value="${value || ''}" oninput="const clear=document.getElementById('${clearId || 'clear-' + (inputId || 'search')}');if(clear)clear.style.display=this.value?'block':'none';${onSearch || 'handleSearch(this.value)'}" ${debounce ? `data-debounce="${debounce}" data-timer="" oninput="clearTimeout(this.dataset.timer);this.dataset.timer=setTimeout(()=>{${onSearch || 'handleSearch(this.value)'}},${debounce})"` : ''} autocomplete="off">
-    <button type="button" class="search-clear" id="${clearId || 'clear-' + (inputId || 'search')}" style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-light);cursor:pointer;display:${value ? 'block' : 'none'};font-size:1rem;padding:0.25rem" onclick="const input=document.getElementById('${inputId || 'search-input-' + (Date.now())}');if(input){input.value='';input.focus();${onClear || onSearch || 'handleSearch(\'\')'};this.style.display='none'}" aria-label="Effacer la recherche"><i class="fas fa-times"></i></button>
+    <input type="text" class="form-input has-icon" id="search-classes" placeholder="Rechercher une classe..." oninput="dashboard.filtrerClasses();var c=document.getElementById('clear-search');if(c)c.style.display=this.value?'':'none'">
+    <button class="search-clear" id="clear-search" style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-light);cursor:pointer;display:none" onclick="document.getElementById('search-classes').value='';dashboard.filtrerClasses();this.style.display='none'"><i class="fas fa-times"></i></button>
   </div>
-  ${showFilters !== false ? `<button type="button" class="btn btn-sm btn-ghost" style="margin-left:0.5rem;flex-shrink:0" onclick="${onFilterClick || 'toggleFilters()'}" aria-label="Filtres avancés" title="Filtres"><i class="fas fa-filter"></i></button>` : ''}
 </div>

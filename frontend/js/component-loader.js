@@ -2,7 +2,7 @@ class ComponentLoader {
     constructor() { this.composants = {}; this.cache = new Map(); }
     register(name, template) { this.composants[name] = template; }
     async loadTemplate(path) { if (this.cache.has(path)) return this.cache.get(path); try { const r = await fetch(path); if (!r.ok) throw new Error(`HTTP ${r.status}`); const h = await r.text(); this.cache.set(path, h); return h; } catch(e) { console.error(`Erreur chargement ${path}:`, e.message); return ''; } }
-    async render(name, props = {}) { let html = this.composants[name] || ''; Object.entries(props).forEach(([k, v]) => { html = html.replace(new RegExp(`\\$\\{${k}\\}`, 'g'), v !== undefined && v !== null ? v : ''); }); html = html.replace(/\$\{[\w.]+\}/g, ''); return html; }
+    async render(name, props = {}) { let html = this.composants[name] || ''; if (!html) return ''; Object.entries(props).forEach(([k, v]) => { const regex = new RegExp(`\\$\\{${k}\\}`, 'g'); html = html.replace(regex, v !== undefined && v !== null ? String(v) : ''); }); html = html.replace(/\$\{[^}]+\}/g, ''); return html; }
     async inject(containerId, name, props = {}) { const c = document.getElementById(containerId); if (!c) return; c.innerHTML = await this.render(name, props); }
     async append(containerId, name, props = {}) { const c = document.getElementById(containerId); if (!c) return; c.insertAdjacentHTML('beforeend', await this.render(name, props)); }
 }
