@@ -17,12 +17,12 @@ a { text-decoration: none; color: inherit; }
 ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
 
 .main-header { background: var(--glass); backdrop-filter: blur(30px); border-bottom: 1px solid var(--glass-border); padding: 0 1.5rem; display: flex; justify-content: space-between; align-items: center; min-height: 60px; position: fixed; width: 100%; top: 0; z-index: 100; flex-wrap: wrap; }
-.header-left { display: flex; align-items: center; gap: 1.75rem; flex: 1; min-width: 0; padding: 0.6rem 0; }
+.header-left { display: flex; align-items: center; gap: 1rem; flex: 1; min-width: 0; padding: 0.6rem 0; }
 .header-info h1 { font-size: 1rem; font-weight: 700; line-height: 1.2; }
 .header-badge { font-size: 0.65rem; margin-top: 1px; }
-.header-right { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0; }
+.header-right { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0; flex-shrink: 0; }
 .header-logo { width: 38px; height: 38px; border-radius: 10px; object-fit: cover; }
-#header-role { background: var(--primary-light); color: var(--primary); padding: 0.3rem 0.7rem; border-radius: 12px; font-weight: 600; font-size: 0.75rem; display: flex; align-items: center; }
+#header-role { background: var(--primary-light); color: var(--primary); padding: 0.3rem 0.7rem; border-radius: 12px; font-weight: 600; font-size: 0.75rem; position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; }
 .menu-toggle { background: none; border: none; color: var(--text-secondary); font-size: 1.2rem; cursor: pointer; padding: 0.4rem; border-radius: var(--radius); display: none; }
 .menu-toggle:hover { background: var(--input-bg); }
 .admin-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); cursor: pointer; background: var(--gradient-1); }
@@ -151,8 +151,6 @@ body.light .badge { box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
 .pointage-container { animation: fadeIn 0.3s ease; }
 #pointage-resultat { transition: all 0.3s ease; }
 
-/*============== PROFIL ELEVE =============*/
-
 .profil-eleve-container { max-width: 900px; margin: 0 auto; }
 .profil-header-card { display: flex; align-items: center; gap: 1.5rem; background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: var(--radius-xl); padding: 1.5rem; margin-bottom: 1.25rem; }
 .profil-avatar-lg { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; font-weight: 700; flex-shrink: 0; }
@@ -232,12 +230,12 @@ body.light .badge { box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
 @keyframes slideUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes pulse { 0%,100% { opacity:1;transform:scale(1) } 50% { opacity:0.6;transform:scale(1.1) } }
 
-
 @media (max-width: 992px) { .classes-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 600px) { .classes-grid { grid-template-columns: 1fr; } .niveau-switcher {margin-top: 7rem;} }
 @media (max-width: 768px) {
     .main-header { padding: 0; flex-direction: column; }
-    .header-left { width: 100%; justify-content: center; padding: 0.5rem 0.75rem; }
+    .header-left { width: 100%; justify-content: center; padding: 0.5rem 0.75rem; flex-wrap: wrap; }
+    #header-role { position: static; left: auto; transform: none; margin: 0.25rem 0; }
     .header-right { width: 100%; justify-content: center; padding: 0.5rem 0.75rem; gap: 1.5rem; border-top: 1px solid var(--glass-border); }
     .header-logo { width: 40px; height: 40px; }
     .header-info h1 { font-size: 0.9rem; }

@@ -1,39 +1,16 @@
-const express = require('express');
-const router = express.Router();
-const Classe = require('../models/Classe');
-const path = require('path');
-const fs = require('fs');
-const multer = require('multer');
-
+const express = require('express');const router = express.Router();const Classe = require('../models/Classe');const path = require('path');const fs = require('fs');const multer = require('multer');const pool = require('../config/database');
 function getAnneeScolaire() { const now = new Date(), mois = now.getMonth() + 1, annee = now.getFullYear(); return mois >= 9 ? `${annee}-${annee + 1}` : `${annee - 1}-${annee}`; }
-
-const uploadLogo = multer({
-    storage: multer.diskStorage({
-        destination: path.join(__dirname, '..', '..', 'assets'),
-        filename: (req, file, cb) => {
-            const ext = path.extname(file.originalname);
-            cb(null, `logo-${req.body.niveau || 'ecole'}${ext}`);
-        }
-    }),
-    limits: { fileSize: 5 * 1024 * 1024 }
-});
-
-// Institutions
+const uploadLogo = multer({ storage: multer.diskStorage({ destination: path.join(__dirname, '..', '..', 'assets'), filename: (req, file, cb) => { const ext = path.extname(file.originalname); cb(null, `logo-temp-${Date.now()}${ext}`); } }), limits: { fileSize: 5 * 1024 * 1024 } });
 router.get('/institutions', async (req, res) => { try { const data = await Classe.getInstitutions(); res.json({ success: true, data }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
 router.get('/institution/:id', async (req, res) => { try { const data = await Classe.findByInstitution(req.params.id); res.json({ success: true, data }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
 router.post('/institution', async (req, res) => { try { const { nom, niveau, regime } = req.body; const id = await Classe.createInstitution(nom, niveau, regime || 'ANGLAIS'); if (niveau === 'maternelle') { for (const n of ['1ère Maternelle', '2ème Maternelle', '3ème Maternelle']) await Classe.createClasse(id, n, n.split(' ')[0], 25); } else if (niveau === 'primaire') { for (let i = 1; i <= 6; i++) { const niv = i === 1 ? '1ère' : `${i}ème`; await Classe.createClasse(id, `${niv} Primaire`, niv, 35); } } else if (niveau === 'secondaire') { for (const n of ['7ème E.B', '8ème E.B']) await Classe.createClasse(id, n, n.split(' ')[0], 40); } res.json({ success: true, id, message: 'Institution créée' }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
-router.put('/institution/:id', uploadLogo.single('logo'), async (req, res) => { try { const { nom, adresse, telephone, email, regime } = req.body; const logo = req.file ? `/assets/${req.file.filename}` : undefined; const fields = []; const values = []; if (nom !== undefined) { fields.push('nom=?'); values.push(nom); } if (adresse !== undefined) { fields.push('adresse=?'); values.push(adresse); } if (telephone !== undefined) { fields.push('telephone=?'); values.push(telephone); } if (email !== undefined) { fields.push('email=?'); values.push(email); } if (regime !== undefined) { fields.push('regime=?'); values.push(regime); } if (logo) { fields.push('logo=?'); values.push(logo); } if (fields.length > 0) { values.push(req.params.id); await Classe.updateInstitution(req.params.id, fields, values); } res.json({ success: true, message: 'Institution modifiée' }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
+router.put('/institution/:id', uploadLogo.single('logo'), async (req, res) => { try { const { nom, adresse, telephone, email, regime } = req.body; const [inst] = await pool.query('SELECT niveau FROM institutions WHERE id=?', [req.params.id]); const niveau = inst.length ? inst[0].niveau : 'ecole'; let logo = undefined; if (req.file) { const ext = path.extname(req.file.originalname); const finalName = `logo-${niveau}${ext}`; const newPath = path.join(__dirname, '..', '..', 'assets', finalName); fs.renameSync(req.file.path, newPath); logo = `/assets/${finalName}`; } const fields = []; const values = []; if (nom !== undefined) { fields.push('nom=?'); values.push(nom); } if (adresse !== undefined) { fields.push('adresse=?'); values.push(adresse); } if (telephone !== undefined) { fields.push('telephone=?'); values.push(telephone); } if (email !== undefined) { fields.push('email=?'); values.push(email); } if (regime !== undefined) { fields.push('regime=?'); values.push(regime); } if (logo) { fields.push('logo=?'); values.push(logo); } if (fields.length > 0) { values.push(req.params.id); await pool.query(`UPDATE institutions SET ${fields.join(',')} WHERE id=?`, values); } res.json({ success: true, message: 'Institution modifiée' }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
 router.delete('/institution/:id', async (req, res) => { try { await Classe.deleteInstitution(req.params.id); res.json({ success: true, message: 'Institution supprimée' }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
-
-// Classes
 router.get('/', async (req, res) => { try { const data = await Classe.findAll(); res.json({ success: true, data }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
 router.get('/:id/stats', async (req, res) => { try { const data = await Classe.findById(req.params.id); if (!data) return res.status(404).json({ success: false, message: 'Classe non trouvée' }); res.json({ success: true, data }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
-
-// Options secondaire
 router.get('/options/:institutionId/:niveauDetail', async (req, res) => { try { const data = await Classe.getOptionsByNiveau(req.params.institutionId, req.params.niveauDetail); res.json({ success: true, data }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
 router.get('/options/secondaire', async (req, res) => { try { const data = await Classe.getOptions(); res.json({ success: true, data }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
-router.post('/option/secondaire', async (req, res) => { try { const { code, nom, institution_id } = req.body; const optId = await Classe.createOption({ code, nom, institution_id }); res.json({ success: true, id: optId, message: 'Option créée' }); } catch(e) { console.error('Erreur création option:', e); res.status(500).json({ success: false, error: e.message }); } });
+router.post('/option/secondaire', async (req, res) => { try { const { code, nom, institution_id } = req.body; const optId = await Classe.createOption({ code, nom, institution_id }); res.json({ success: true, id: optId, message: 'Option créée' }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
 router.put('/option/:id', async (req, res) => { try { await Classe.updateOption(req.params.id, req.body); res.json({ success: true, message: 'Option modifiée' }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
 router.delete('/option/:id', async (req, res) => { try { const nom = await Classe.deleteOption(req.params.id); if (!nom) return res.status(404).json({ success: false, message: 'Option non trouvée' }); res.json({ success: true, message: 'Option supprimée' }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
-
 module.exports = router;
