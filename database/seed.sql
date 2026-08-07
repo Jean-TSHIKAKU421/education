@@ -3,7 +3,7 @@ USE education;
 -- Déchargement des données de la table `administrateurs`
 
 INSERT INTO `administrateurs` (`id`, `username`, `password_hash`, `nom_complet`, `role`) VALUES
-(1, 'admin', '$2b$10$rQZ5qpT8qFqGJqGTqGNJZuNhXV7qGJoGZHvGqGBqqMGzMGzMGMzMG', 'Administrateur Principal', 'super_admin');
+(1, 'admin', '$2b$10$YuwYOrLoQmAzbmq.8hNhu.9VlfZW2K76ky6JjvYcd3kj8j9VcBOH6', 'Administrateur Principal', 'super_admin');
 
 
 SET FOREIGN_KEY_CHECKS = 0;

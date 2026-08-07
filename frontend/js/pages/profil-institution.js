@@ -1,3 +1,4 @@
+console.log('OK')
 class ProfilInstitutionPage {
     constructor() { this.institutions = []; this.options = []; this.institutionActive = null; }
     async render() { const m = document.getElementById('main-content'); m.innerHTML = `<div style="text-align:center;padding:3rem"><div class="spinner"></div><p style="color:var(--text-muted);margin-top:0.75rem">Chargement...</p></div>`; try { const ir = await apiGet('/classes/institutions'); this.institutions = ir.data || []; const optRes = await apiGet('/classes/options/secondaire'); this.options = optRes.data || []; if (!this.institutionActive && this.institutions.length) this.institutionActive = this.institutions[0]; await this.afficher(m); } catch(e) { console.error('Erreur profil institution:', e); m.innerHTML = `<div style="text-align:center;padding:3rem"><i class="fas fa-exclamation-triangle" style="font-size:2.5rem;color:var(--text-muted)"></i><p>${e.message}</p></div>`; } }
