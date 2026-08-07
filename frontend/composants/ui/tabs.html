@@ -1,8 +1,8 @@
-<div class="tabs-container">
-  <div class="tabs-nav">
-    ${tabs ? tabs.map((t,i) => `<button class="tab-item ${i === (active || 0) ? 'active' : ''}" onclick="switchTab('${tabGroup}','${t.id}')">${t.icon ? `<i class="fas fa-${t.icon}"></i>` : ''} ${t.label}</button>`).join('') : ''}
+<div class="tabs-container" style="margin-bottom:1rem">
+  <div class="tab-switcher" role="tablist" aria-label="${tabGroup || 'Navigation par onglets'}">
+    ${tabs ? tabs.map((t,i) => `<button class="tab-btn ${i === (active || 0) ? 'active' : ''}" role="tab" aria-selected="${i === (active || 0)}" onclick="switchTab('${tabGroup}','${t.id}')">${t.icon ? `<i class="fas fa-${t.icon}"></i> ` : ''}${t.label}${t.badge ? ` <span class="badge badge-${t.badge.type || 'info'}">${t.badge.text}</span>` : ''}</button>`).join('') : ''}
   </div>
-  <div class="tabs-content" id="${tabGroup}-content">
-    ${tabs ? tabs.map((t,i) => `<div class="tab-panel ${i === (active || 0) ? 'active' : ''}" id="${t.id}-panel">${t.content || ''}</div>`).join('') : ''}
+  <div id="${tabGroup}-content" style="margin-top:1rem">
+    ${tabs ? tabs.map((t,i) => `<div class="tab-panel" id="${t.id}-panel" role="tabpanel" style="display:${i === (active || 0) ? 'block' : 'none'}">${t.content || ''}</div>`).join('') : ''}
   </div>
 </div>

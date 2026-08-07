@@ -1,4 +1,4 @@
-<div class="ui-card ${hoverable ? 'card-hoverable' : ''} ${className || ''}" ${onclick ? `onclick="${onclick}"` : ''} style="${style || ''}">
+<div class="ui-card ${hoverable || onclick ? 'card-hoverable' : ''} ${className || ''}" ${onclick ? `onclick="${onclick}"` : ''} style="${style || ''}" ${onclick ? 'role="button" tabindex="0" onkeydown="if(event.key===\'Enter\')this.click()"' : ''}>
   ${icon ? `<div class="card-icon-wrapper" style="background:${iconBg || 'var(--primary)'}"><i class="fas fa-${icon}"></i></div>` : ''}
   ${image ? `<div class="card-image"><img src="${image}" alt="${title || ''}"></div>` : ''}
   <div class="card-body">

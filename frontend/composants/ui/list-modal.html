@@ -1,9 +1,10 @@
 <div class="modal" style="max-width:420px;max-height:80vh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
   <div class="modal-header">
-    <h3><i class="fas fa-${icon}"></i> ${title}</h3>
-    <button class="modal-close" onclick="document.getElementById('${id}').remove()"><i class="fas fa-times"></i></button>
+    <h3><i class="fas fa-${icon || 'list'}"></i> ${title || 'Liste'}</h3>
+    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()" aria-label="Fermer"><i class="fas fa-times"></i></button>
   </div>
   <div class="modal-body" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:0.5rem;padding-bottom:0.5rem">
-    ${items}
+    ${items || '<p style="color:var(--text-muted);text-align:center;padding:1rem">Aucun élément</p>'}
   </div>
+  ${footer ? `<div class="modal-footer">${footer}</div>` : ''}
 </div>

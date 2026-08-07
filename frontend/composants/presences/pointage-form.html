@@ -15,7 +15,7 @@
       <p style="text-align:center;color:var(--text-light)">ou</p>
       <div class="input-wrapper">
         <i class="fas fa-keyboard input-icon input-icon-left"></i>
-        <input type="text" class="form-input has-icon" placeholder="Entrer le matricule manuellement" id="matricule-manuel">
+        <input type="text" class="form-input has-icon" placeholder="Entrer le matricule manuellement" id="matricule-manuel" onkeydown="if(event.key==='Enter')pointageManuel()">
       </div>
       <button class="btn btn-outline btn-full" onclick="pointageManuel()"><i class="fas fa-check"></i> Valider</button>
     </div>

@@ -1,72 +1,11 @@
 class PointageService {
     constructor() { this.scanner = null; this.scanning = false; this.intervalleVerification = null; this.demarre = false; }
-    async start() { 
-        if (this.demarre) return; this.demarre = true; 
-        console.log('🟢 Service pointage démarré'); 
-        this.verifierAbsencesAuto(); 
-        this.intervalleVerification = setInterval(() => this.verifierAbsencesAuto(), 60000); 
-        this.demarrerScanner(); 
-    }
-    stop() { 
-        this.demarre = false; 
-        if (this.intervalleVerification) clearInterval(this.intervalleVerification); 
-        if (this.scanner) { try { this.scanner.stop().catch(()=>{}); } catch(e) {} } 
-    }
-    async demarrerScanner() { 
-        if (this.scanning) return; this.scanning = true; 
-        try { 
-            this.scanner = new Html5Qrcode("qr-scanner-bg"); 
-            await this.scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, 
-                (d) => this.traiterScan(d), () => {}); 
-        } catch(e) { this.scanning = false; console.log('Scanner bg non disponible'); } 
-    }
-    async traiterScan(decodedText) {
-        if (!this.scanning) return;
-        let eleveId = null;
-        if (decodedText.includes('/#eleves/')) eleveId = decodedText.split('/#eleves/')[1];
-        else if (decodedText.includes('#eleves/')) eleveId = decodedText.split('#eleves/')[1];
-        else { try { const j = JSON.parse(decodedText); eleveId = j.id || j.eleve_id; } catch(e) {} }
-        if (!eleveId) return;
-        try {
-            const res = await API.getEleve(eleveId);
-            if (!res.success || !res.data) return;
-            const e = res.data;
-            if (e.statut && e.statut !== '?' && e.statut !== null) { 
-                this.afficherNotification(e, 'Déjà pointé'); return; 
-            }
-            const statut = this.determinerStatut();
-            await API.pointerPresence({ eleve_id: eleveId, statut, methode_pointage: 'QR' });
-            this.afficherNotification(e, statut);
-        } catch(e) { console.error('Erreur scan:', e); }
-    }
+    async start() { if (this.demarre) return; this.demarre = true; console.log('🟢 Service pointage démarré'); this.verifierAbsencesAuto(); this.intervalleVerification = setInterval(() => this.verifierAbsencesAuto(), 5 * 60000); this.demarrerScanner(); }
+    stop() { this.demarre = false; if (this.intervalleVerification) clearInterval(this.intervalleVerification); if (this.scanner) { try { this.scanner.stop().catch(()=>{}); } catch(e) {} } this.scanning = false; }
+    async demarrerScanner() { if (this.scanning) return; this.scanning = true; try { this.scanner = new Html5Qrcode("qr-scanner-bg"); await this.scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, (d) => this.traiterScan(d), () => {}); } catch(e) { this.scanning = false; console.log('Scanner non disponible'); } }
+    async traiterScan(decodedText) { if (!this.scanning) return; let eleveId = null; if (decodedText.includes('#eleves/')) eleveId = decodedText.split('#eleves/')[1]; else { try { const j = JSON.parse(decodedText); eleveId = j.id || j.eleve_id; } catch(e) {} } if (!eleveId) return; try { const res = await API.getEleve(eleveId); if (!res.success || !res.data) return; const e = res.data; if (e.statut && e.statut !== '?' && e.statut !== null) { this.afficherNotification(e, 'Déjà pointé'); return; } const statut = this.determinerStatut(); await API.pointerPresence({ eleve_id: eleveId, statut, methode_pointage: 'QR' }); this.afficherNotification(e, statut); } catch(e) { console.error('Erreur scan:', e); } }
     determinerStatut() { const n = new Date(), t = n.getHours()*60 + n.getMinutes(); if (t < 450) return 'present'; if (t <= 630) return 'retard'; return 'absent'; }
-    afficherNotification(e, statut) {
-        const labels = { present:'Présent ✅', retard:'Retard ⏰', absent:'Absent ❌', 'Déjà pointé':'⚠️ Déjà pointé' };
-        const colors = { present:'var(--success)', retard:'var(--warning)', absent:'var(--danger)', 'Déjà pointé':'var(--info)' };
-        const icons = { present:'check-circle', retard:'clock', absent:'times-circle', 'Déjà pointé':'exclamation-triangle' };
-        const notif = document.createElement('div');
-        notif.style.cssText = `position:fixed;top:1rem;right:1rem;z-index:9999;background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:var(--radius-xl);padding:1rem 1.5rem;display:flex;align-items:center;gap:0.75rem;animation:slideUp 0.3s ease;max-width:350px;box-shadow:var(--shadow-xl)`;
-        notif.innerHTML = `<i class="fas fa-${icons[statut]||'check-circle'}" style="font-size:1.5rem;color:${colors[statut]||'var(--success)'}"></i><div><strong>${e.prenom} ${e.nom}</strong><p style="color:var(--text-secondary);font-size:0.85rem">${labels[statut]||statut}</p><p style="color:var(--text-muted);font-size:0.75rem">${e.classe_nom||'N/A'}</p></div>`;
-        document.body.appendChild(notif);
-        setTimeout(() => { notif.style.opacity = '0'; notif.style.transition = 'opacity 0.3s'; setTimeout(() => notif.remove(), 300); }, 4000);
-    }
-    
-    async verifierAbsencesAuto() {
-        if (typeof estJourFerie === 'function' && estJourFerie()) { console.log('📅 Jour férié - pas de pointage'); return; }
-        try {
-            const cr = await apiGet('/classes');
-            const classes = cr.data || [];
-            for (const c of classes) {
-                const er = await apiGet(`/eleves/classe/${c.id}`);
-                const eleves = er.data || [];
-                for (const e of eleves) {
-                    if (!e.statut || e.statut === null || e.statut === '?' || e.statut === '') {
-                        await API.pointerPresence({ eleve_id: e.id, statut: 'absent', methode_pointage: 'AUTO' });
-                    }
-                }
-            }
-            console.log('✅ Pointage auto terminé');
-        } catch(e) { console.error('Erreur pointage auto:', e); }
-    }
+    afficherNotification(e, statut) { const labels = { present:'Présent ✅', retard:'Retard ⏰', absent:'Absent ❌', 'Déjà pointé':'⚠️ Déjà pointé' }; const colors = { present:'var(--success)', retard:'var(--warning)', absent:'var(--danger)', 'Déjà pointé':'var(--info)' }; const icons = { present:'check-circle', retard:'clock', absent:'times-circle', 'Déjà pointé':'exclamation-triangle' }; const notif = document.createElement('div'); notif.style.cssText = `position:fixed;top:1rem;right:1rem;z-index:9999;background:var(--glass);backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:var(--radius-xl);padding:1rem 1.5rem;display:flex;align-items:center;gap:0.75rem;animation:slideUp 0.3s ease;max-width:350px;box-shadow:0 10px 40px rgba(0,0,0,0.4)`; notif.innerHTML = `<i class="fas fa-${icons[statut]||'check-circle'}" style="font-size:1.5rem;color:${colors[statut]||'var(--success)'}"></i><div><strong>${e.prenom} ${e.nom}</strong><p style="color:var(--text-secondary);font-size:0.85rem">${labels[statut]||statut}</p><p style="color:var(--text-muted);font-size:0.75rem">${e.classe_nom||'N/A'}</p></div>`; document.body.appendChild(notif); setTimeout(() => { notif.style.opacity = '0'; notif.style.transition = 'opacity 0.3s'; setTimeout(() => notif.remove(), 300); }, 4000); }
+    async verifierAbsencesAuto() { if (typeof estJourFerie === 'function' && estJourFerie()) { console.log('📅 Jour férié - pas de pointage'); return; } try { const cr = await apiGet('/classes'); const classes = cr.data || []; for (const c of classes) { const er = await apiGet(`/eleves/classe/${c.id}`); const eleves = er.data || []; for (const e of eleves) { if (!e.statut || e.statut === null || e.statut === '?' || e.statut === '') { await API.pointerPresence({ eleve_id: e.id, statut: 'absent', methode_pointage: 'AUTO' }); } } } console.log('✅ Pointage auto terminé'); } catch(e) { console.error('Erreur pointage auto:', e); } }
 }
 const pointageService = new PointageService();

@@ -3,12 +3,12 @@ async function initApp() {
     if (!authService.isAuth()) { window.location.href = '/login.html'; return; }
     const user = authService.getUser();
     if (localStorage.getItem('theme') === 'light') document.body.classList.add('light');
-    try { const h = await CL.loadTemplate('/composants/layout/header.html'); document.getElementById('header-container').innerHTML = h; updateThemeIcon(); updateHeaderInfo(); } catch(e) {}
+    try { const h = await CL.loadTemplate('/composants/layout/header.html'); document.getElementById('header-container').innerHTML = h.replace('>A<', `>${(user?.nom_complet||'A').charAt(0)}<`).replace('>Admin<', `>${user?.nom_complet||'Admin'}<`); updateThemeIcon(); updateHeaderInfo(); const roleEl=document.getElementById('header-role'); if(roleEl){const labels={super_admin:'Super Admin',admin:'Admin',secretaire:'Secrétaire'};roleEl.textContent=labels[user?.role]||user?.role||'Admin';} } catch(e) {}
     for (const c of ['button','input','select','modal','card','table','badge','alert','loader','textarea']) { try { CL.register(`ui/${c}`, await CL.loadTemplate(`/composants/ui/${c}.html`)); } catch(e) {} }
     try { CL.register('forms/search-bar', await CL.loadTemplate('/composants/forms/search-bar.html')); } catch(e) {}
     try { CL.register('ui/list-modal', await CL.loadTemplate('/composants/ui/list-modal.html')); } catch(e) {}
     dashboard = new DashboardPage();
-    router.add('dashboard', () => { if (pointagePage) pointagePage = null; dashboard.render(); });
+    router.add('dashboard', () => dashboard.render());
     router.add('classe/:id', (p) => { classeDetail = new ClasseDetailPage(p.id); classeDetail.render(p); });
     router.add('eleves/:id', (p) => new ProfilElevePage(p.id).render());
     router.add('profil', () => { profilInstitution = new ProfilInstitutionPage(); profilInstitution.render(); });
@@ -16,7 +16,7 @@ async function initApp() {
     const route = window.location.hash.slice(1) || 'dashboard'; router.navigate(route);
     pointageService.start();
 }
-async function updateHeaderInfo(institutionActive) { try { const res = await apiGet('/classes/institutions');const institutions = res.data || [];const inst = institutionActive || (institutions.length ? institutions[0] : null);if (!inst) return;const nomEl = document.getElementById('header-institution-nom');const nivEl = document.getElementById('header-institution-niveau');const logoEl = document.getElementById('header-logo');if (nomEl) nomEl.textContent = inst.nom || 'EduManage';if (nivEl) nivEl.innerHTML = `<i class="fas fa-school"></i> ${inst.niveau || ''}`;if (logoEl) logoEl.src = inst.logo || '/assets/logo-ecole.png';} catch(e) {}}
+async function updateHeaderInfo(institutionActive) { try { const res = await fetch('/api/classes/institutions').then(r => r.json()); const institutions = res.data || []; const inst = institutionActive || (institutions.length ? institutions[0] : null); if (!inst) return; const nomEl = document.getElementById('header-institution-nom'); const nivEl = document.getElementById('header-institution-niveau'); const logoEl = document.getElementById('header-logo'); if (nomEl) nomEl.textContent = inst.nom || 'EduManage'; if (nivEl) nivEl.innerHTML = `<i class="fas fa-school"></i> ${inst.niveau || ''}`; if (logoEl) { logoEl.src = inst.logo || '/assets/logo-ecole.png'; logoEl.onerror = () => { logoEl.style.display = 'none'; }; } if (inst.regime) { setRegime(inst.regime); } } catch(e) {} }
 function toggleTheme() { const btn = document.getElementById('theme-toggle'); if (!btn) return; btn.classList.add('switching'); setTimeout(() => { document.body.classList.toggle('light'); localStorage.setItem('theme', document.body.classList.contains('light') ? 'light' : 'dark'); updateThemeIcon(); btn.classList.remove('switching'); }, 300); }
 function updateThemeIcon() { const i = document.querySelector('#theme-toggle i'); if (i) i.className = document.body.classList.contains('light') ? 'fas fa-sun' : 'fas fa-moon'; }
 function closeModal(id) { const m = document.getElementById(`${id}-overlay`); if (m) m.remove(); }

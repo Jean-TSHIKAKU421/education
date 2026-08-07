@@ -1,17 +1,27 @@
 <div>
   <button class="btn btn-ghost" onclick="history.back()" style="margin-bottom:1.5rem"><i class="fas fa-arrow-left"></i> Retour</button>
   <div class="profil-header">
-    <div class="profil-avatar-large">${initiales}</div>
+    <div class="profil-avatar-large" style="background:${photo ? `url(${photo}) center/cover` : (couleur || 'var(--primary)')};${photo ? '' : 'display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:2rem'}">
+      ${photo ? '' : (initiales || (prenom?.charAt(0) || '') + (nom?.charAt(0) || ''))}
+      ${genre === 'M' || genre === 'F' ? `<i class="fas fa-${genre === 'M' ? 'mars' : 'venus'}" style="position:absolute;bottom:5px;right:5px;font-size:0.8rem;background:white;color:${genre === 'M' ? '#3498db' : '#e84393'};border-radius:50%;padding:4px"></i>` : ''}
+    </div>
     <div style="flex:1">
-      <h2>${prenom} ${nom}</h2>
+      <h2>${prenom || ''} ${nom || ''}</h2>
       <div style="display:flex;gap:1rem;color:var(--text-light);margin-top:0.5rem;flex-wrap:wrap">
-        <span><i class="fas fa-id-card"></i> ${matricule}</span>
-        <span><i class="fas fa-graduation-cap"></i> ${classe || 'N/A'}</span>
-        <span><i class="fas fa-calendar"></i> ${date_inscription || 'N/A'}</span>
-        <span><i class="fas fa-birthday-cake"></i> ${age || '?'} ans</span>
+        <span><i class="fas fa-id-card"></i> ${matricule || 'N/A'}</span>
+        <span><i class="fas fa-graduation-cap"></i> ${classe || classe_nom || 'N/A'}</span>
+        <span><i class="fas fa-calendar"></i> Inscrit le ${date_inscription || 'N/A'}</span>
+        <span><i class="fas fa-birthday-cake"></i> ${date_naissance ? new Date().getFullYear() - new Date(date_naissance).getFullYear() : (age || '?')} ans</span>
+        <span><i class="fas fa-${genre === 'M' ? 'mars' : genre === 'F' ? 'venus' : 'genderless'}"></i> ${genre === 'M' ? 'Masculin' : genre === 'F' ? 'Féminin' : (genre || 'N/A')}</span>
       </div>
-      <div style="margin-top:1rem;display:flex;gap:0.5rem;flex-wrap:wrap">${actions || ''}</div>
+      <div style="margin-top:1rem;display:flex;gap:0.5rem;flex-wrap:wrap">
+        ${actions || ''}
+        ${qr_code ? `<button class="btn btn-sm btn-ghost" onclick="showQRCode('${qr_code}')" title="QR Code"><i class="fas fa-qrcode"></i> QR Code</button>` : ''}
+      </div>
     </div>
   </div>
-  <div class="profil-grid">${contenu_gauche || ''}${contenu_droite || ''}</div>
+  <div class="profil-grid">
+    ${contenu_gauche || '<div class="ui-card"><div class="card-body"><h4><i class="fas fa-info-circle"></i> Informations</h4><p style="color:var(--text-light)">Aucune information supplémentaire</p></div></div>'}
+    ${contenu_droite || ''}
+  </div>
 </div>

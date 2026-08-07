@@ -1,4 +1,5 @@
-<button class="btn btn-${type || 'primary'} btn-${size || 'md'} ${fullWidth ? 'btn-full' : ''}" ${id ? `id="${id}"` : ''} ${disabled ? 'disabled' : ''} ${onclick ? `onclick="${onclick}"` : ''} ${typeBtn ? `type="${typeBtn}"` : 'type="button"'}>
-  ${loading ? '<i class="fas fa-spinner fa-spin"></i>' : icon ? `<i class="fas fa-${icon} ${iconPos === 'right' ? 'btn-icon-right' : 'btn-icon-left'}"></i>` : ''}
+<button class="btn btn-${type || 'primary'} btn-${size || 'md'} ${fullWidth ? 'btn-full' : ''} ${className || ''}" ${id ? `id="${id}"` : ''} ${disabled ? 'disabled' : ''} ${onclick ? `onclick="${onclick}"` : ''} ${typeBtn ? `type="${typeBtn}"` : 'type="button"'} ${title ? `title="${title}"` : ''} ${form ? `form="${form}"` : ''}>
+  ${loading ? '<i class="fas fa-spinner fa-spin"></i> ' : icon && iconPos !== 'right' ? `<i class="fas fa-${icon}"></i> ` : ''}
   <span>${text || 'Button'}</span>
+  ${!loading && icon && iconPos === 'right' ? ` <i class="fas fa-${icon}"></i>` : ''}
 </button>

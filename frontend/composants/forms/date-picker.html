@@ -1,7 +1,9 @@
-<div class="input-group">
-  ${label ? `<label class="input-label" for="${id || name}">${icon ? `<i class="fas fa-${icon}"></i>` : ''} ${label}</label>` : ''}
+<div class="form-group">
+  ${label ? `<label class="input-label" for="${id || name}">${icon ? `<i class="fas fa-${icon}"></i>` : ''} ${label} ${required ? '<span style="color:var(--danger)">*</span>' : ''}</label>` : ''}
   <div class="input-wrapper">
     <i class="fas fa-calendar-alt input-icon input-icon-left"></i>
-    <input type="date" name="${name}" id="${id || name}" class="form-input has-icon" value="${value || ''}" ${min ? `min="${min}"` : ''} ${max ? `max="${max}"` : ''} ${required ? 'required' : ''}>
+    <input type="date" name="${name}" id="${id || name}" class="form-input has-icon" value="${value || ''}" ${min ? `min="${min}"` : ''} ${max ? `max="${max}"` : ''} ${required ? 'required' : ''} aria-label="${label || name}" ${disabled ? 'disabled' : ''} ${readonly ? 'readonly' : ''}>
   </div>
+  ${help ? `<small class="input-help" style="color:var(--text-light);font-size:0.8rem;display:block;margin-top:0.25rem">${help}</small>` : ''}
+  ${error ? `<small class="input-error" style="color:var(--danger);font-size:0.8rem;display:block;margin-top:0.25rem"><i class="fas fa-exclamation-circle"></i> ${error}</small>` : ''}
 </div>

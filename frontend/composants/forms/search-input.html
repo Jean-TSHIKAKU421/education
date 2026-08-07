@@ -1,5 +1,5 @@
-<div class="input-wrapper" style="${fullWidth ? 'width:100%' : 'max-width:400px'}">
+<div class="input-wrapper" style="${fullWidth ? 'width:100%' : `max-width:${maxWidth || '400px'}`}">
   <i class="fas fa-search input-icon input-icon-left"></i>
-  <input type="text" class="form-input has-icon" id="${id || 'search'}" placeholder="${placeholder || 'Rechercher...'}" oninput="${onSearch ? `debounceSearch('${id || 'search'}')` : ''}" value="${value || ''}">
-  ${value ? `<button class="search-clear" onclick="document.getElementById('${id || 'search'}').value='';${onClear || ''}" style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-light);cursor:pointer"><i class="fas fa-times"></i></button>` : ''}
+  <input type="text" class="form-input has-icon" id="${id || 'search'}" placeholder="${placeholder || 'Rechercher...'}" value="${value || ''}" autocomplete="off" oninput="const btn=document.getElementById('clear-${id || 'search'}');if(btn)btn.style.display=this.value?'block':'none';${onSearch ? `clearTimeout(this._debounce);this._debounce=setTimeout(()=>{${onSearch}(this.value)},${debounce || 300})` : ''}">
+  <button type="button" id="clear-${id || 'search'}" class="search-clear" style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-light);cursor:pointer;display:${value ? 'block' : 'none'};font-size:1rem;padding:0.25rem" onclick="const input=document.getElementById('${id || 'search'}');if(input){input.value='';input.focus();input.dispatchEvent(new Event('input'));this.style.display='none';${onClear ? `${onClear}()` : ''}}" aria-label="Effacer la recherche"><i class="fas fa-times"></i></button>
 </div>

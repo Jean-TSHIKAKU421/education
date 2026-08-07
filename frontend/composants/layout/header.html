@@ -1,15 +1,16 @@
 <header class="main-header">
   <div class="header-left">
-    <button class="menu-toggle" id="menu-toggle-btn" style="display:none" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-    <img src="/assets/logo-ecole.png" alt="Logo" class="header-logo" id="header-logo" onerror="this.style.display='none'">
+    <button class="menu-toggle" id="menu-toggle-btn" onclick="${onToggleSidebar || 'toggleSidebar()'}" aria-label="Menu" style="display:none"><i class="fas fa-bars"></i></button>
+    <img src="${logo || '/assets/logo-ecole.png'}" alt="Logo ${institution || 'EduManage'}" class="header-logo" onerror="this.style.display='none';this.nextElementSibling.style.marginLeft='0'">
     <div class="header-info">
-      <h1 id="header-institution-nom">... ... ...</h1>
-      <span class="badge badge-info header-badge" id="header-institution-niveau"></span>
+      <h1>${institution || 'EduManage'}</h1>
+      ${niveau ? `<span class="badge badge-info header-badge">${niveau}</span>` : ''}
     </div>
   </div>
+  ${role ? `<span class="badge badge-info" style="font-size:0.78rem;padding:0.35rem 0.8rem;flex-shrink:0;margin:0 1rem"><i class="fas fa-${role === 'super_admin' ? 'crown' : role === 'admin' ? 'user-shield' : 'user-cog'}"></i> ${role === 'super_admin' ? 'Super Admin' : role === 'admin' ? 'Admin' : role}</span>` : ''}
   <div class="header-right">
-    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
-    <button class="theme-toggle" onclick="router.navigate('profil')" title="Profil"><i class="fas fa-user-circle"></i></button>
-    <button class="btn-logout" onclick="authService.logout()"><i class="fas fa-sign-out-alt"></i> <span class="hide-mobile">Quitter</span></button>
+    ${showThemeToggle !== false ? `<button class="theme-toggle" id="theme-toggle-btn" onclick="${onToggleTheme || 'toggleTheme()'}" aria-label="Changer le thème" title="${theme === 'dark' ? 'Mode clair' : 'Mode sombre'}"><i class="fas fa-${theme === 'dark' ? 'sun' : 'moon'}"></i></button>` : ''}
+    ${showProfil !== false ? `<button class="theme-toggle" onclick="${onProfil || `router.navigate('profil')`}" title="Profil" aria-label="Mon profil"><i class="fas fa-user-circle"></i></button>` : ''}
+    <button class="btn-logout" onclick="${onLogout || 'authService.logout()'}" aria-label="Déconnexion"><i class="fas fa-sign-out-alt"></i> <span class="hide-mobile">Quitter</span></button>
   </div>
 </header>

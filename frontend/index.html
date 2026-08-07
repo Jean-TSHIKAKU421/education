@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>EduManager - Gestion Scolaire</title>
+  <title>EduManage - Gestion Scolaire</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="icon" href="/assets/logo-ecole.png">
@@ -14,21 +14,23 @@
     <div id="header-container"></div>
     <div class="main-layout">
       <main class="main-content" id="main-content">
-        <div style="text-align:center;padding:4rem"><div class="spinner"></div><p>Chargement...</p></div>
+        <div style="text-align:center;padding:4rem"><div class="spinner"></div><p style="color:var(--text-muted);margin-top:1rem">Chargement...</p></div>
       </main>
     </div>
   </div>
   <div id="qr-scanner-bg" style="position:fixed;top:0;left:0;width:1px;height:1px;opacity:0.01;pointer-events:none;overflow:hidden"></div>
   <script src="/js/xlsx.full.min.js"></script>
+  <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+  <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="/js/utils.js"></script>
   <script src="/js/services/auth.js"></script>
+  <script src="/js/services/jours-feries.js"></script>
   <script src="/js/api.js"></script>
+  <script src="/js/utils/validation.js"></script>
   <script src="/js/component-loader.js"></script>
   <script src="/js/router.js"></script>
-  <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
   <script src="/js/services/import-excel.js"></script>
   <script src="/js/services/import-excel-ui.js"></script>
-  <script src="https://unpkg.com/html5-qrcode"></script>
   <script src="/js/services/pointage-service.js"></script>
   <script src="/js/pages/dashboard.js"></script>
   <script src="/js/pages/profil-eleve.js"></script>

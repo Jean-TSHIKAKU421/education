@@ -1,6 +1,8 @@
-<div class="input-group ${error ? 'has-error' : ''}">
-  ${label ? `<label class="input-label" for="${id || name}">${icon ? `<i class="fas fa-${icon}"></i>` : ''} ${label} ${required ? '<span class="required">*</span>' : ''}</label>` : ''}
-  <textarea name="${name}" id="${id || name}" class="form-input" rows="${rows || 4}" placeholder="${placeholder || ''}" ${required ? 'required' : ''} ${disabled ? 'disabled' : ''} ${readonly ? 'readonly' : ''} style="resize:${resize || 'vertical'}">${value || ''}</textarea>
-  ${error ? `<span class="field-message error"><i class="fas fa-exclamation-circle"></i> ${error}</span>` : ''}
-  ${helper ? `<span class="field-message"><i class="fas fa-info-circle"></i> ${helper}</span>` : ''}
+<div class="input-group ${error ? 'has-error' : ''}" style="${fullWidth ? 'width:100%' : ''}">
+  ${label ? `<label class="input-label" for="${id || name}" style="display:block;margin-bottom:0.4rem;font-size:0.85rem;font-weight:500;color:var(--text-secondary)">${icon ? `<i class="fas fa-${icon}"></i> ` : ''}${label} ${required ? '<span style="color:var(--danger)">*</span>' : ''}</label>` : ''}
+  <textarea name="${name}" id="${id || name}" class="form-input" rows="${rows || 4}" placeholder="${placeholder || ''}" ${required ? 'required' : ''} ${disabled ? 'disabled' : ''} ${readonly ? 'readonly' : ''} ${maxlength ? `maxlength="${maxlength}"` : ''} style="resize:${resize || 'vertical'};min-height:${minHeight || 'auto'}" oninput="${oninput || ''}">${value || ''}</textarea>
+  ${maxlength ? `<span style="display:block;margin-top:0.3rem;font-size:0.75rem;color:var(--text-muted);text-align:right">${(value || '').length || 0}/${maxlength}</span>` : ''}
+  ${error ? `<span style="display:block;margin-top:0.3rem;font-size:0.78rem;color:var(--danger)"><i class="fas fa-exclamation-circle"></i> ${error}</span>` : ''}
+  ${helper && !error ? `<span style="display:block;margin-top:0.3rem;font-size:0.78rem;color:var(--text-muted)"><i class="fas fa-info-circle"></i> ${helper}</span>` : ''}
+  ${success ? `<span style="display:block;margin-top:0.3rem;font-size:0.78rem;color:var(--success)"><i class="fas fa-check-circle"></i> ${success}</span>` : ''}
 </div>

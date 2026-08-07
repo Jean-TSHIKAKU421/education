@@ -1,12 +1,12 @@
-<div class="input-group ${error ? 'has-error' : ''}">
-  ${label ? `<label class="input-label" for="${id || name}">${labelIcon ? `<i class="fas fa-${labelIcon}"></i>` : ''} ${label} ${required ? '<span class="required">*</span>' : ''}</label>` : ''}
+<div class="input-group ${error ? 'has-error' : ''}" style="${fullWidth ? 'width:100%' : ''}">
+  ${label ? `<label class="input-label" for="${id || name}" style="display:block;margin-bottom:0.4rem;font-size:0.85rem;font-weight:500;color:var(--text-secondary)">${labelIcon ? `<i class="fas fa-${labelIcon}"></i> ` : ''}${label} ${required ? '<span style="color:var(--danger)">*</span>' : ''}</label>` : ''}
   <div class="input-wrapper">
     ${icon && iconPos !== 'right' ? `<i class="fas fa-${icon} input-icon input-icon-left"></i>` : ''}
-    <input type="${type || 'text'}" name="${name}" id="${id || name}" class="form-input ${icon && iconPos !== 'right' ? 'has-icon' : ''} ${icon && iconPos === 'right' ? 'has-icon-right' : ''}" placeholder="${placeholder || ''}" value="${value || ''}" ${required ? 'required' : ''} ${disabled ? 'disabled' : ''} ${readonly ? 'readonly' : ''} ${min ? `min="${min}"` : ''} ${max ? `max="${max}"` : ''} ${step ? `step="${step}"` : ''} ${pattern ? `pattern="${pattern}"` : ''} ${autocomplete ? `autocomplete="${autocomplete}"` : ''}>
-    ${icon && iconPos === 'right' ? `<i class="fas fa-${icon} input-icon input-icon-right"></i>` : ''}
-    ${togglePassword ? `<button type="button" class="toggle-password" onclick="const p=document.getElementById('${id || name}');p.type=p.type==='password'?'text':'password';this.querySelector('i').className=p.type==='password'?'fas fa-eye':'fas fa-eye-slash';"><i class="fas fa-eye"></i></button>` : ''}
+    <input type="${type || 'text'}" name="${name}" id="${id || name}" class="form-input ${icon && iconPos !== 'right' ? 'has-icon' : ''}" style="${icon && iconPos === 'right' ? 'padding-right:2.5rem' : ''}" placeholder="${placeholder || ''}" value="${value || ''}" ${required ? 'required' : ''} ${disabled ? 'disabled' : ''} ${readonly ? 'readonly' : ''} ${min ? `min="${min}"` : ''} ${max ? `max="${max}"` : ''} ${step ? `step="${step}"` : ''} ${pattern ? `pattern="${pattern}"` : ''} ${autocomplete ? `autocomplete="${autocomplete}"` : ''}>
+    ${icon && iconPos === 'right' ? `<i class="fas fa-${icon}" style="position:absolute;right:0.8rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:0.9rem"></i>` : ''}
+    ${togglePassword ? `<button type="button" class="toggle-password" style="position:absolute;right:0.5rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text-muted);cursor:pointer;padding:0.3rem" onclick="const p=document.getElementById('${id || name}');p.type=p.type==='password'?'text':'password';this.querySelector('i').className=p.type==='password'?'fas fa-eye':'fas fa-eye-slash';" aria-label="Afficher/masquer le mot de passe"><i class="fas fa-eye"></i></button>` : ''}
   </div>
-  ${error ? `<span class="field-message error"><i class="fas fa-exclamation-circle"></i> ${error}</span>` : ''}
-  ${helper && !error ? `<span class="field-message"><i class="fas fa-info-circle"></i> ${helper}</span>` : ''}
-  ${success ? `<span class="field-message success"><i class="fas fa-check-circle"></i> ${success}</span>` : ''}
+  ${error ? `<span style="display:block;margin-top:0.3rem;font-size:0.78rem;color:var(--danger)"><i class="fas fa-exclamation-circle"></i> ${error}</span>` : ''}
+  ${helper && !error ? `<span style="display:block;margin-top:0.3rem;font-size:0.78rem;color:var(--text-muted)"><i class="fas fa-info-circle"></i> ${helper}</span>` : ''}
+  ${success ? `<span style="display:block;margin-top:0.3rem;font-size:0.78rem;color:var(--success)"><i class="fas fa-check-circle"></i> ${success}</span>` : ''}
 </div>

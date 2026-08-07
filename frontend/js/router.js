@@ -2,12 +2,12 @@ class Router {
     constructor() { this.routes = {}; this.currentRoute = null; }
     add(route, handler) { this.routes[route] = handler; return this; }
     async navigate(route, params = {}) {
-        if (this.currentRoute === route) return;
+        if (this.currentRoute === route && !params._force) return;
         this.currentRoute = route;
         window.history.pushState({}, '', `#${route}`);
         const main = document.getElementById('main-content');
         if (!main) return;
-        main.innerHTML = `<div style="text-align:center;padding:3rem"><div class="spinner"></div><p>Chargement...</p></div>`;
+        main.innerHTML = `<div style="text-align:center;padding:3rem"><div class="spinner"></div><p style="color:var(--text-secondary);margin-top:1rem">Chargement...</p></div>`;
         this.updateNav(route);
         try {
             let handler = null, routeParams = {};
@@ -16,10 +16,10 @@ class Router {
                 if (m) { handler = h; routeParams = m; break; }
             }
             if (handler) { await handler({ ...params, ...routeParams }); }
-            else { main.innerHTML = `<div style="text-align:center;padding:3rem"><i class="fas fa-map-signs" style="font-size:4rem;color:#95a5a6"></i><h2>404</h2><p>Page non trouvée</p></div>`; }
-        } catch(e) { main.innerHTML = `<div style="text-align:center;padding:3rem"><i class="fas fa-exclamation-triangle" style="font-size:3rem;color:var(--danger)"></i><p>Erreur</p></div>`; }
+            else { main.innerHTML = `<div style="text-align:center;padding:3rem"><i class="fas fa-map-signs" style="font-size:4rem;color:var(--text-muted);display:block;margin-bottom:1rem"></i><h2 style="color:var(--text-secondary)">404</h2><p style="color:var(--text-muted)">Page non trouvée</p></div>`; }
+        } catch(e) { console.error('Erreur route:', e); main.innerHTML = `<div style="text-align:center;padding:3rem"><i class="fas fa-exclamation-triangle" style="font-size:3rem;color:var(--danger);display:block;margin-bottom:1rem"></i><h2 style="color:var(--text-secondary)">Erreur</h2><p style="color:var(--text-muted)">${e.message || 'Une erreur est survenue'}</p></div>`; }
     }
-    match(pattern, route) { const pp = pattern.split('/'), rp = route.split('/'); if (pp.length !== rp.length) return null; const params = {}; for (let i = 0; i < pp.length; i++) { if (pp[i].startsWith(':')) { params[pp[i].slice(1)] = rp[i]; } else if (pp[i] !== rp[i]) { return null; } } return params; }
+    match(pattern, route) { const pp = pattern.split('/'), rp = route.split('/'); if (pp.length !== rp.length) return null; const params = {}; for (let i = 0; i < pp.length; i++) { if (pp[i].startsWith(':')) { params[pp[i].slice(1)] = decodeURIComponent(rp[i]); } else if (pp[i] !== rp[i]) { return null; } } return params; }
     updateNav(route) { document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active')); const active = document.querySelector(`.nav-item[data-route="${route.split('/')[0]}"]`); if (active) active.classList.add('active'); }
 }
 const router = new Router();

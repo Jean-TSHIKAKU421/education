@@ -1,41 +1,8 @@
-const pool = require('../config/database');
-
+const pool = require('../config/database');const Classe = require('./Classe');const Eleve = require('./Eleve');
 class Presence {
-    static async pointer({ eleve_id, statut, justification, methode_pointage }) {
-        const today = new Date().toISOString().split('T')[0];
-        const now = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const finalStatut = (justification === 'malade' || justification === 'endeuille') ? 'justifie' : statut;
-        const [existing] = await pool.query('SELECT id FROM presences WHERE eleve_id=? AND date_presence=?', [eleve_id, today]);
-        if (existing.length > 0) {
-            await pool.query('UPDATE presences SET statut=?, heure_arrivee=?, methode_pointage=?, justification=? WHERE id=?', [finalStatut, now, methode_pointage || 'MANUEL', justification || null, existing[0].id]);
-        } else {
-            await pool.query('INSERT INTO presences (eleve_id, date_presence, statut, heure_arrivee, methode_pointage, justification) VALUES (?,?,?,?,?,?)', [eleve_id, today, finalStatut, now, methode_pointage || 'MANUEL', justification || null]);
-        }
-        return true;
-    }
-
-    static async getByEleve(eleveId, limit = 30) {
-        const [r] = await pool.query('SELECT * FROM presences WHERE eleve_id=? ORDER BY date_presence DESC LIMIT ?', [eleveId, limit]);
-        return r;
-    }
-
-    static async getByClasse(classeId, date = null) {
-        const d = date || new Date().toISOString().split('T')[0];
-        const [r] = await pool.query(`SELECT e.id, e.matricule, e.nom, e.prenom, e.genre, p.statut, p.justification FROM eleves e LEFT JOIN presences p ON e.id=p.eleve_id AND p.date_presence=? WHERE e.classe_id=? ORDER BY e.nom, e.prenom`, [d, classeId]);
-        return r;
-    }
-
-    static async pointerAbsencesAuto() {
-        const classes = await Classe.findAll();
-        for (const c of classes) {
-            const eleves = await Eleve.findByClasse(c.id);
-            for (const e of eleves) {
-                if (!e.statut || e.statut === '?' || e.statut === null || e.statut === '') {
-                    await this.pointer({ eleve_id: e.id, statut: 'absent', methode_pointage: 'AUTO' });
-                }
-            }
-        }
-    }
+    static async pointer({ eleve_id, statut, justification, methode_pointage }) {const today = new Date().toISOString().split('T')[0];const now = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });const finalStatut = (justification === 'malade' || justification === 'endeuille') ? 'justifie' : statut;const [existing] = await pool.query('SELECT id, statut FROM presences WHERE eleve_id=? AND date_presence=?', [eleve_id, today]);if (existing.length > 0) {if (existing[0].statut === 'present' || existing[0].statut === 'retard') {return false;}await pool.query('UPDATE presences SET statut=?, heure_arrivee=?, methode_pointage=?, justification=? WHERE id=?', [finalStatut, finalStatut === 'present' ? now : null, methode_pointage || 'MANUEL', justification || null, existing[0].id]);} else { await pool.query('INSERT INTO presences (eleve_id, date_presence, statut, heure_arrivee, methode_pointage, justification) VALUES (?,?,?,?,?,?)', [eleve_id, today, finalStatut, finalStatut === 'present' ? now : null, methode_pointage || 'MANUEL', justification || null]);}return true;}
+    static async getByEleve(eleveId, limit = 30) {const [r] = await pool.query('SELECT * FROM presences WHERE eleve_id=? ORDER BY date_presence DESC LIMIT ?', [eleveId, limit]);return r;}
+    static async getByClasse(classeId, date = null) {const d = date || new Date().toISOString().split('T')[0];const [r] = await pool.query(`SELECT e.id, e.matricule, e.nom, e.prenom, e.genre, p.statut, p.justification FROM eleves e LEFT JOIN presences p ON e.id=p.eleve_id AND p.date_presence=? WHERE e.classe_id=? ORDER BY e.nom, e.prenom`, [d, classeId]);return r;}
+    static async pointerAbsencesAuto() {const classes = await Classe.findAll();for (const c of classes) {const eleves = await Eleve.findByClasse(c.id);for (const e of eleves) {if (!e.statut || e.statut === '?' || e.statut === null || e.statut === '') {await this.pointer({ eleve_id: e.id, statut: 'absent', methode_pointage: 'AUTO' });}}}}
 }
-
 module.exports = Presence;

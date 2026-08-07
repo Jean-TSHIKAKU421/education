@@ -5,12 +5,20 @@
       ${period ? `<span class="badge badge-info">${period}</span>` : ''}
     </div>
     <div id="${chartId || 'chart'}" style="width:100%;height:${height || '250px'}">
-      <div style="display:flex;align-items:flex-end;justify-content:space-around;height:100%;gap:0.5rem;padding:0.5rem 0">
-        ${data ? data.map(d => `<div style="flex:1;text-align:center">
-          <div style="height:${d.value || 0}%;background:${d.color || 'var(--primary)'};border-radius:4px 4px 0 0;transition:height 0.5s;min-height:4px"></div>
-          <div style="font-size:0.7rem;color:var(--text-light);margin-top:0.25rem">${d.label || ''}</div>
-        </div>`).join('') : '<p style="color:var(--text-light);text-align:center;width:100%">Aucune donnée</p>'}
-      </div>
+      ${data && data.length ? (() => {
+        const maxVal = Math.max(...data.map(d => d.value || 0), 1);
+        return `<div style="display:flex;align-items:flex-end;justify-content:space-around;height:100%;gap:0.5rem;padding:0.5rem 0" role="img" aria-label="${title || 'Graphique'} : ${data.map(d => d.label + ' ' + (d.value || 0)).join(', ')}">
+          ${data.map(d => {
+            const h = ((d.value || 0) / maxVal) * 100;
+            const color = d.color || (h >= 80 ? 'var(--success)' : h >= 50 ? 'var(--warning)' : 'var(--danger)');
+            return `<div style="flex:1;text-align:center;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end">
+              <div style="font-size:0.7rem;font-weight:bold;color:var(--text);margin-bottom:0.25rem">${d.value || 0}</div>
+              <div style="width:100%;height:${h}%;background:${color};border-radius:4px 4px 0 0;transition:height 0.5s;min-height:${d.value > 0 ? '4px' : '0'}"></div>
+              <div style="font-size:0.7rem;color:var(--text-light);margin-top:0.25rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${d.label}">${d.label || ''}</div>
+            </div>`;
+          }).join('')}
+        </div>`;
+      })() : '<p style="color:var(--text-light);text-align:center;width:100%;padding-top:2rem"><i class="fas fa-chart-bar"></i> Aucune donnée disponible</p>'}
     </div>
   </div>
 </div>

@@ -1,23 +1,25 @@
-<form class="eleve-form" id="${formId || 'eleve-form'}" onsubmit="event.preventDefault();${onsubmit || 'sauvegarderEleve()'}">
+<form class="eleve-form" id="${formId || 'eleve-form'}" onsubmit="event.preventDefault();${onsubmit || 'sauvegarderEleve()'}" novalidate>
   <div style="display:flex;flex-direction:column;gap:1.5rem">
     <div class="form-section">
       <h3 class="section-title"><i class="fas fa-user"></i> Informations personnelles</h3>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1rem">
-        ${inputs?.nom || ''}
-        ${inputs?.prenom || ''}
-        ${inputs?.date_naissance || ''}
-        ${inputs?.genre || ''}
-        ${inputs?.adresse || ''}
-        ${inputs?.classe_id || ''}
+        ${inputs?.nom || '<div class="form-group"><label>Nom <span style="color:var(--danger)">*</span></label><input type="text" name="nom" class="form-input" required placeholder="Nom de l\'élève"></div>'}
+        ${inputs?.prenom || '<div class="form-group"><label>Prénom <span style="color:var(--danger)">*</span></label><input type="text" name="prenom" class="form-input" required placeholder="Prénom de l\'élève"></div>'}
+        ${inputs?.date_naissance || '<div class="form-group"><label>Date de naissance <span style="color:var(--danger)">*</span></label><input type="date" name="date_naissance" class="form-input" required></div>'}
+        ${inputs?.genre || `<div class="form-group"><label>Genre <span style="color:var(--danger)">*</span></label><select name="genre" class="form-input" required><option value="">Sélectionner...</option><option value="M">Masculin</option><option value="F">Féminin</option></select></div>`}
+        ${inputs?.adresse || '<div class="form-group"><label>Adresse</label><textarea name="adresse" class="form-input" rows="2" placeholder="Adresse complète"></textarea></div>'}
+        ${inputs?.classe_id || '<div class="form-group"><label>Classe <span style="color:var(--danger)">*</span></label><select name="classe_id" class="form-input" required><option value="">Sélectionner une classe...</option></select></div>'}
+        ${showPhoto !== false ? `<div class="form-group"><label>Photo</label><input type="file" name="photo" class="form-input" accept="image/*" onchange="previewPhoto(this)"><div id="photo-preview" style="margin-top:0.5rem">${photoPreview || ''}</div></div>` : ''}
       </div>
     </div>
     <div class="form-section">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-        <h3 class="section-title" style="margin:0"><i class="fas fa-users"></i> Responsables</h3>
-        <button type="button" class="btn btn-sm btn-ghost" onclick="ajouterResponsable()"><i class="fas fa-plus-circle"></i> Ajouter</button>
+        <h3 class="section-title" style="margin:0"><i class="fas fa-users"></i> Responsables <span style="font-size:0.8rem;color:var(--text-light)">(au moins un requis)</span></h3>
+        <button type="button" class="btn btn-sm btn-ghost" onclick="${onAddResponsable || 'ajouterResponsable()'}"><i class="fas fa-plus-circle"></i> Ajouter</button>
       </div>
-      <div id="responsables-container">${responsablesHTML || ''}</div>
+      <div id="responsables-container">${responsablesHTML || '<p style="color:var(--text-light);text-align:center;padding:1rem"><i class="fas fa-info-circle"></i> Aucun responsable ajouté</p>'}</div>
     </div>
+    ${error ? `<div class="alert alert-danger"><i class="fas fa-exclamation-circle"></i> ${error}</div>` : ''}
     <div style="display:flex;gap:0.75rem;justify-content:flex-end">
       <button type="button" class="btn btn-ghost" onclick="${oncancel || 'history.back()'}"><i class="fas fa-times"></i> Annuler</button>
       <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> ${submitText || 'Enregistrer'}</button>
