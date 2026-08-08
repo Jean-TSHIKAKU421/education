@@ -1,13 +1,44 @@
-const JOURS_FERIES_RDC = [{ jour: 1, mois: 1, nom: 'Nouvel An' },{ jour: 4, mois: 1, nom: 'Martyrs de l\'Indépendance' },{ jour: 16, mois: 1, nom: 'Héros National L.D. Kabila' },{ jour: 17, mois: 1, nom: 'Héros National P.E. Lumumba' },{ jour: 1, mois: 5, nom: 'Fête du Travail' },{ jour: 17, mois: 5, nom: 'Jour de la Libération' },{ jour: 30, mois: 6, nom: 'Fête de l\'Indépendance' },{ jour: 1, mois: 8, nom: 'Fête des Parents' },{ jour: 25, mois: 12, nom: 'Noël' },{ jour: 30, mois: 12, nom: 'Héros National J. Kasa-Vubu' }];
-const REGIMES = {ANGLAIS: { label: 'Anglais (Lun-Ven)', jours: [1, 2, 3, 4, 5] },FRANCAIS: { label: 'Français (Lun-Sam)', jours: [1, 2, 3, 4, 5, 6] }};let REGIME_ACTIF = REGIMES.ANGLAIS;
-function setRegime(regime) { REGIME_ACTIF = REGIMES[regime] || REGIMES.ANGLAIS; localStorage.setItem('regime_scolaire', regime || 'ANGLAIS'); }
-function getRegime() { const saved = localStorage.getItem('regime_scolaire'); return REGIMES[saved] || REGIMES.ANGLAIS; }
-function initRegime() { REGIME_ACTIF = getRegime(); }
-function estJourFerie(date = new Date()) {const jour = date.getDate(), mois = date.getMonth() + 1, annee = date.getFullYear();if (JOURS_FERIES_RDC.find(f => f.jour === jour && f.mois === mois)) return true;const paques = calculerPaques(annee);const lundiPaques = new Date(paques); lundiPaques.setDate(paques.getDate() + 1);const ascension = new Date(paques); ascension.setDate(paques.getDate() + 39);const pentecote = new Date(paques); pentecote.setDate(paques.getDate() + 50);const dateStr = `${annee}-${String(mois).padStart(2,'0')}-${String(jour).padStart(2,'0')}`;if ([lundiPaques, ascension, pentecote].map(d => d.toISOString().split('T')[0]).includes(dateStr)) return true;return false;}
-function estDimanche(date = new Date()) { return date.getDay() === 0; }
-function estJourEtude(date = new Date()) {const jourSemaine = date.getDay();if (jourSemaine === 0) return false;if (!REGIME_ACTIF.jours.includes(jourSemaine)) return false;if (estJourFerie(date)) return false;return true;}
-function peutPointer(date = new Date()) { return estJourEtude(date); }
-function getJoursEtudeSemaine() { return REGIME_ACTIF.jours; }
-function getNomRegime() { return REGIME_ACTIF.label; }
-function calculerPaques(annee) {const a = annee % 19, b = Math.floor(annee / 100), c = annee % 100;const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;const i = Math.floor(c / 4), k = c % 4;const l = (32 + 2 * e + 2 * i - h - k) % 7;const m = Math.floor((a + 11 * h + 22 * l) / 451);const mois = Math.floor((h + l - 7 * m + 114) / 31);const jour = ((h + l - 7 * m + 114) % 31) + 1;return new Date(annee, mois - 1, jour);}
-initRegime();
+const JOURS_FERIES_RDC = [
+    { jour: 1, mois: 1, nom: 'Nouvel An' },
+    { jour: 4, mois: 1, nom: 'Martyrs de l\'Indépendance' },
+    { jour: 16, mois: 1, nom: 'Héros National L.D. Kabila' },
+    { jour: 17, mois: 1, nom: 'Héros National P.E. Lumumba' },
+    { jour: 1, mois: 5, nom: 'Fête du Travail' },
+    { jour: 17, mois: 5, nom: 'Jour de la Libération' },
+    { jour: 30, mois: 6, nom: 'Fête de l\'Indépendance' },
+    { jour: 1, mois: 8, nom: 'Fête des Parents' },
+    { jour: 25, mois: 12, nom: 'Noël' },
+    { jour: 30, mois: 12, nom: 'Héros National J. Kasa-Vubu' }
+];
+
+function estJourFerie(date = new Date()) {
+    const jour = date.getDate();
+    const mois = date.getMonth() + 1;
+    const annee = date.getFullYear();
+
+    // Jours fériés fixes
+    if (JOURS_FERIES_RDC.find(f => f.jour === jour && f.mois === mois)) return true;
+
+    // Jours fériés mobiles (Pâques, Ascension, Pentecôte)
+    const paques = calculerPaques(annee);
+    const lundiPaques = new Date(paques); lundiPaques.setDate(paques.getDate() + 1);
+    const ascension = new Date(paques); ascension.setDate(paques.getDate() + 39);
+    const pentecote = new Date(paques); pentecote.setDate(paques.getDate() + 50);
+
+    const dateStr = `${annee}-${String(mois).padStart(2,'0')}-${String(jour).padStart(2,'0')}`;
+    if ([lundiPaques, ascension, pentecote].map(d => d.toISOString().split('T')[0]).includes(dateStr)) return true;
+
+    return false;
+}
+
+function calculerPaques(annee) {
+    const a = annee % 19, b = Math.floor(annee / 100), c = annee % 100;
+    const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+    const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4), k = c % 4;
+    const l = (32 + 2 * e + 2 * i - h - k) % 7;
+    const m = Math.floor((a + 11 * h + 22 * l) / 451);
+    const mois = Math.floor((h + l - 7 * m + 114) / 31);
+    const jour = ((h + l - 7 * m + 114) % 31) + 1;
+    return new Date(annee, mois - 1, jour);
+}

@@ -1,20 +1,13 @@
-<tr class="clickable-row" onclick="${onclick || `router.navigate('eleves/${id}')`}" role="button" tabindex="0" aria-label="Voir le profil de ${prenom} ${nom}" onkeydown="if(event.key==='Enter')this.click()">
-  <td data-label="Matricule"><strong>${matricule || 'N/A'}</strong></td>
-  <td data-label="Nom">${nom || ''}</td>
-  <td data-label="Prénom">${prenom || ''}</td>
-  <td data-label="Genre">
-    ${genre === 'M' || genre === 'F' ? `<span class="badge badge-info"><i class="fas fa-${genre === 'M' ? 'mars' : 'venus'}"></i> ${genre}</span>` : (genre ? `<span class="badge">${genre}</span>` : '-')}
-  </td>
-  <td data-label="Classe">${classe || classe_nom || '-'}</td>
-  <td data-label="Statut">
-    ${statut ? `<span class="badge badge-${statut === 'present' ? 'success' : statut === 'absent' ? 'danger' : statut === 'retard' ? 'warning' : 'info'}" aria-label="Statut : ${statut}"><i class="fas fa-${statut === 'present' ? 'check' : statut === 'absent' ? 'times' : statut === 'retard' ? 'clock' : 'info-circle'}"></i> ${statut}</span>` : '-'}
-    ${justification ? ` <span class="badge badge-info" title="${justification}"><i class="fas fa-info-circle"></i></span>` : ''}
-  </td>
-  <td class="actions-cell" onclick="event.stopPropagation()">
-    ${showActions !== false ? `
-    <button class="btn btn-sm btn-primary" onclick="router.navigate('eleves/${id}')" title="Voir le profil" aria-label="Voir le profil de ${prenom} ${nom}"><i class="fas fa-eye"></i></button>
-    <button class="btn btn-sm btn-warning" onclick="${onEdit || `modifierEleve(${id})`}" title="Modifier" aria-label="Modifier ${prenom} ${nom}"><i class="fas fa-edit"></i></button>
-    <button class="btn btn-sm btn-danger" onclick="${onDelete || `supprimerEleve(${id})`}" title="Supprimer" aria-label="Supprimer ${prenom} ${nom}"><i class="fas fa-trash"></i></button>
-    ` : ''}
+<tr class="clickable-row" onclick="${onclick || `router.navigate('eleves/${id}')`}">
+  <td><strong>${matricule}</strong></td>
+  <td>${nom}</td>
+  <td>${prenom}</td>
+  <td><span class="badge badge-info"><i class="fas fa-${genre === 'M' ? 'mars' : 'venus'}"></i> ${genre === 'M' ? 'M' : 'F'}</span></td>
+  <td>${classe || '-'}</td>
+  <td>${statut ? `<span class="badge badge-${statut === 'present' ? 'success' : statut === 'absent' ? 'danger' : 'warning'}"><i class="fas fa-${statut === 'present' ? 'check' : statut === 'absent' ? 'times' : 'clock'}"></i> ${statut}</span>` : '-'}</td>
+  <td class="actions-cell">
+    <button class="btn btn-sm btn-primary" onclick="event.stopPropagation();router.navigate('eleves/${id}')" title="Voir"><i class="fas fa-eye"></i></button>
+    <button class="btn btn-sm btn-warning" onclick="event.stopPropagation();modifierEleve(${id})" title="Modifier"><i class="fas fa-edit"></i></button>
+    <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();supprimerEleve(${id})" title="Supprimer"><i class="fas fa-trash"></i></button>
   </td>
 </tr>

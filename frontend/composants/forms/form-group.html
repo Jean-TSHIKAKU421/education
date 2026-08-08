@@ -1,11 +1,4 @@
-<div class="form-section" style="margin-bottom:1.5rem" role="group" ${title ? `aria-labelledby="section-title-${id || name || 'form'}"` : ''}>
-  ${title ? `
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-    <h3 class="section-title" id="section-title-${id || name || 'form'}" style="margin:0">${icon ? `<i class="fas fa-${icon}"></i>` : ''} ${title}</h3>
-    ${action ? `<button type="button" class="btn btn-sm btn-ghost" onclick="${action.onclick}" aria-label="${action.label || 'Ajouter'}"><i class="fas fa-${action.icon || 'plus-circle'}"></i> ${action.label || 'Ajouter'}</button>` : ''}
-  </div>
-  ${description ? `<p style="color:var(--text-light);font-size:0.85rem;margin:-0.5rem 0 1rem 0">${description}</p>` : ''}
-  ` : ''}
-  <div class="form-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(${colMin || '250px'},1fr));gap:${gap || '1rem'}">${content || ''}</div>
-  ${footer ? `<div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">${footer}</div>` : ''}
+<div class="form-section" style="margin-bottom:1.5rem">
+  ${title ? `<h3 class="section-title" style="margin-bottom:1rem">${icon ? `<i class="fas fa-${icon}"></i>` : ''} ${title} ${action ? `<button type="button" class="btn btn-sm btn-ghost" onclick="${action.onclick}"><i class="fas fa-${action.icon || 'plus-circle'}"></i> ${action.label || 'Ajouter'}</button>` : ''}</h3>` : ''}
+  <div class="form-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(${colMin || '250px'},1fr));gap:1rem">${content || ''}</div>
 </div>

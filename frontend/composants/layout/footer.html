@@ -1,9 +1,3 @@
-<footer style="text-align:center;padding:1rem 2rem;color:var(--text-light);font-size:0.85rem;border-top:1px solid var(--border);background:var(--white);${sticky ? 'position:sticky;bottom:0;z-index:10' : ''}">
-  <div style="display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap">
-    <p style="margin:0">${icon ? `<i class="fas fa-${icon}"></i> ` : ''}${text || `© ${new Date().getFullYear()} EduManage - Tous droits réservés`} ${version ? `<span style="margin-left:0.5rem">v${version}</span>` : ''}</p>
-    ${links ? `
-    <nav style="display:flex;gap:1rem" aria-label="Liens du pied de page">
-      ${links.map(l => `<a href="${l.url || '#'}" style="color:var(--text-light);text-decoration:none;font-size:0.85rem" ${l.onclick ? `onclick="${l.onclick}"` : ''} ${l.target ? `target="${l.target}"` : ''} ${l.title ? `title="${l.title}"` : ''}>${l.icon ? `<i class="fas fa-${l.icon}"></i> ` : ''}${l.label}</a>`).join('')}
-    </nav>` : ''}
-  </div>
+<footer style="text-align:center;padding:1rem 2rem;color:var(--text-light);font-size:0.85rem;border-top:1px solid var(--border);background:var(--white)">
+  <p>${text || `© ${new Date().getFullYear()} EduManage - Tous droits réservés`} ${version ? `<span style="margin-left:1rem">v${version}</span>` : ''}</p>
 </footer>

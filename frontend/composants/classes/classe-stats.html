@@ -2,41 +2,26 @@
   <div class="card-body">
     <h4 style="margin-bottom:1rem"><i class="fas fa-chart-pie"></i> Statistiques - ${nom_classe}</h4>
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1rem">
-      <div style="text-align:center;padding:1rem;background:var(--bg);border-radius:var(--radius-sm)" aria-label="Total élèves : ${nb_eleves || 0}">
+      <div style="text-align:center;padding:1rem;background:var(--bg);border-radius:var(--radius-sm)">
         <i class="fas fa-user-graduate" style="font-size:2rem;color:var(--primary);margin-bottom:0.5rem"></i>
         <div style="font-size:1.5rem;font-weight:bold">${nb_eleves || 0}</div>
         <div style="color:var(--text-light);font-size:0.85rem">Total élèves</div>
       </div>
-      <div style="text-align:center;padding:1rem;background:var(--success-light);border-radius:var(--radius-sm)" aria-label="Présents : ${presents || 0}">
+      <div style="text-align:center;padding:1rem;background:var(--success-light);border-radius:var(--radius-sm)">
         <i class="fas fa-user-check" style="font-size:2rem;color:var(--success);margin-bottom:0.5rem"></i>
         <div style="font-size:1.5rem;font-weight:bold">${presents || 0}</div>
         <div style="color:var(--text-light);font-size:0.85rem">Présents</div>
       </div>
-      <div style="text-align:center;padding:1rem;background:var(--danger-light);border-radius:var(--radius-sm)" aria-label="Absents : ${absents || 0}">
+      <div style="text-align:center;padding:1rem;background:var(--danger-light);border-radius:var(--radius-sm)">
         <i class="fas fa-user-times" style="font-size:2rem;color:var(--danger);margin-bottom:0.5rem"></i>
         <div style="font-size:1.5rem;font-weight:bold">${absents || 0}</div>
         <div style="color:var(--text-light);font-size:0.85rem">Absents</div>
       </div>
-      <div style="text-align:center;padding:1rem;background:var(--warning-light);border-radius:var(--radius-sm)" aria-label="Retards : ${retards || 0}">
+      <div style="text-align:center;padding:1rem;background:var(--warning-light);border-radius:var(--radius-sm)">
         <i class="fas fa-user-clock" style="font-size:2rem;color:var(--warning);margin-bottom:0.5rem"></i>
         <div style="font-size:1.5rem;font-weight:bold">${retards || 0}</div>
         <div style="color:var(--text-light);font-size:0.85rem">Retards</div>
       </div>
-      <div style="text-align:center;padding:1rem;background:var(--info-light, #e3f2fd);border-radius:var(--radius-sm)" aria-label="Taux de présence : ${taux_presence || 0}%">
-        <i class="fas fa-percentage" style="font-size:2rem;color:var(--info, #2196f3);margin-bottom:0.5rem"></i>
-        <div style="font-size:1.5rem;font-weight:bold">${taux_presence || 0}%</div>
-        <div style="color:var(--text-light);font-size:0.85rem">Taux présence</div>
-      </div>
     </div>
-    ${taux_presence !== undefined ? `
-    <div style="margin-top:1.5rem">
-      <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
-        <span><i class="fas fa-chart-line"></i> Taux de présence global</span>
-        <span style="font-weight:bold;color:${taux_presence >= 80 ? 'var(--success)' : taux_presence >= 50 ? 'var(--warning)' : 'var(--danger)'}">${taux_presence}%</span>
-      </div>
-      <div style="background:var(--border);border-radius:10px;height:8px;overflow:hidden">
-        <div style="width:${taux_presence}%;height:100%;background:${taux_presence >= 80 ? 'var(--success)' : taux_presence >= 50 ? 'var(--warning)' : 'var(--danger)'};border-radius:10px;transition:width 1s"></div>
-      </div>
-    </div>` : ''}
   </div>
 </div>
