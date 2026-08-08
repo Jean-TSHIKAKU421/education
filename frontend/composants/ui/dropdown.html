@@ -1,8 +1,8 @@
 <div class="dropdown" style="position:relative;display:inline-block">
-  <button class="btn btn-${type || 'ghost'} btn-${size || 'sm'}" onclick="event.stopPropagation();toggleDropdown('${id}')" aria-expanded="false" aria-haspopup="true">
-    ${icon ? `<i class="fas fa-${icon}"></i> ` : ''}${text || ''} <i class="fas fa-chevron-down" style="font-size:0.7rem;margin-left:0.25rem"></i>
+  <button class="btn btn-${type || 'ghost'} btn-${size || 'sm'}" onclick="toggleDropdown('${id}')">
+    ${icon ? `<i class="fas fa-${icon}"></i>` : ''} ${text || ''} <i class="fas fa-chevron-down"></i>
   </button>
-  <div class="dropdown-menu" id="${id}" style="display:none;position:absolute;top:100%;right:0;z-index:50;background:var(--card-bg);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 10px 40px rgba(0,0,0,0.4);min-width:180px;padding:0.5rem 0" role="menu">
-    ${items ? items.map(item => `<a href="${item.href || '#'}" class="dropdown-item" style="display:flex;align-items:center;gap:0.5rem;padding:0.6rem 1rem;color:var(--text);transition:var(--transition);text-decoration:none;font-size:0.85rem" onclick="event.preventDefault();${item.onclick || ''};toggleDropdown('${id}')" role="menuitem">${item.icon ? `<i class="fas fa-${item.icon}"></i>` : ''} ${item.label}</a>`).join('') : ''}
+  <div class="dropdown-menu" id="${id}" style="display:none;position:absolute;top:100%;right:0;z-index:50;background:var(--white);border-radius:var(--radius-sm);box-shadow:var(--shadow-lg);min-width:180px;padding:0.5rem 0">
+    ${items ? items.map(item => `<a href="${item.href || '#'}" class="dropdown-item" style="display:flex;align-items:center;gap:0.5rem;padding:0.6rem 1rem;color:var(--text);transition:var(--transition)" onclick="${item.onclick || ''};toggleDropdown('${id}')">${item.icon ? `<i class="fas fa-${item.icon}"></i>` : ''} ${item.label}</a>`).join('') : ''}
   </div>
 </div>
