@@ -4,6 +4,7 @@ const Classe = require('../models/Classe');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const pool = require('../config/database');
 
 function getAnneeScolaire() { const now = new Date(), mois = now.getMonth() + 1, annee = now.getFullYear(); return mois >= 9 ? `${annee}-${annee + 1}` : `${annee - 1}-${annee}`; }
 
@@ -27,33 +28,9 @@ const uploadLogo = multer({
     limits: { fileSize: 5 * 1024 * 1024 }
 });
 
-router.put('/institution/:id', async (req, res, next) => {
-    try {
-        const niveau = await Classe.updateInstitution(req.params.id, req.body);
-        req._niveau = niveau; // Passer le niveau au middleware multer
-        next();
-    } catch(e) { res.status(500).json({ success: false, error: e.message }); }
-}, uploadLogo.single('logo'), (req, res) => {
-    res.json({ success: true, message: 'Institution modifiée' });
-});
+router.put('/institution/:id', uploadLogo.single('logo'), async (req, res) => { try { const { nom, adresse, telephone, email, regime } = req.body; const [inst] = await pool.query('SELECT niveau FROM institutions WHERE id=?', [req.params.id]); const niveau = inst.length ? inst[0].niveau : 'ecole'; let logo = undefined; if (req.file) { const ext = path.extname(req.file.originalname); const finalName = `logo-${niveau}${ext}`; const newPath = path.join(__dirname, '..', '..', 'assets', finalName); fs.renameSync(req.file.path, newPath); logo = `/assets/${finalName}`; } const fields = []; const values = []; if (nom !== undefined) { fields.push('nom=?'); values.push(nom); } if (adresse !== undefined) { fields.push('adresse=?'); values.push(adresse); } if (telephone !== undefined) { fields.push('telephone=?'); values.push(telephone); } if (email !== undefined) { fields.push('email=?'); values.push(email); } if (regime !== undefined) { fields.push('regime=?'); values.push(regime); } if (logo) { fields.push('logo=?'); values.push(logo); } if (fields.length > 0) { values.push(req.params.id); await pool.query(`UPDATE institutions SET ${fields.join(',')} WHERE id=?`, values); } res.json({ success: true, message: 'Institution modifiée' }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
 
-router.post('/institution', async (req, res) => {
-    try {
-        const { nom, niveau } = req.body;
-        const id = await Classe.createInstitution(nom, niveau);
-        if (niveau === 'maternelle') {
-            for (const n of ['1ère Maternelle', '2ème Maternelle', '3ème Maternelle']) await Classe.createClasse(id, n, n.split(' ')[0], 25);
-        } else if (niveau === 'primaire') {
-            for (let i = 1; i <= 6; i++) {
-                const niv = i === 1 ? '1ère' : `${i}ème`;
-                await Classe.createClasse(id, `${niv} Primaire`, niv, 35);
-            }
-        } else if (niveau === 'secondaire') {
-            for (const n of ['7ème E.B', '8ème E.B']) await Classe.createClasse(id, n, n.split(' ')[0], 40);
-        }
-        res.json({ success: true, id, message: 'Institution créée' });
-    } catch(e) { res.status(500).json({ success: false, error: e.message }); }
-});
+router.post('/institution', async (req, res) => { try { const { nom, niveau, regime } = req.body; const id = await Classe.createInstitution(nom, niveau, regime || 'ANGLAIS'); if (niveau === 'maternelle') { for (const n of ['1ère Maternelle', '2ème Maternelle', '3ème Maternelle']) await Classe.createClasse(id, n, n.split(' ')[0], 25); } else if (niveau === 'primaire') { for (let i = 1; i <= 6; i++) { const niv = i === 1 ? '1ère' : `${i}ème`; await Classe.createClasse(id, `${niv} Primaire`, niv, 35); } } else if (niveau === 'secondaire') { for (const n of ['7ème E.B', '8ème E.B']) await Classe.createClasse(id, n, n.split(' ')[0], 40); } res.json({ success: true, id, message: 'Institution créée' }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
 
 router.post('/option/secondaire', async (req, res) => {
     try {
