@@ -1,18 +1,7 @@
 const pool = require('../config/database');
 
 class Presence {
-    static async pointer({ eleve_id, statut, justification, methode_pointage }) {
-        const today = new Date().toISOString().split('T')[0];
-        const now = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        const finalStatut = (justification === 'malade' || justification === 'endeuille') ? 'justifie' : statut;
-        const [existing] = await pool.query('SELECT id FROM presences WHERE eleve_id=? AND date_presence=?', [eleve_id, today]);
-        if (existing.length > 0) {
-            await pool.query('UPDATE presences SET statut=?, heure_arrivee=?, methode_pointage=?, justification=? WHERE id=?', [finalStatut, now, methode_pointage || 'MANUEL', justification || null, existing[0].id]);
-        } else {
-            await pool.query('INSERT INTO presences (eleve_id, date_presence, statut, heure_arrivee, methode_pointage, justification) VALUES (?,?,?,?,?,?)', [eleve_id, today, finalStatut, now, methode_pointage || 'MANUEL', justification || null]);
-        }
-        return true;
-    }
+    static async pointer({ eleve_id, statut, justification, methode_pointage }) { const today = new Date().toISOString().split('T')[0]; const now = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' }); const finalStatut = (justification && justification !== 'pas_motif') ? 'justifie' : statut; const [existing] = await pool.query('SELECT id, statut FROM presences WHERE eleve_id=? AND date_presence=?', [eleve_id, today]); if (existing.length > 0) { if (existing[0].statut === 'present' || existing[0].statut === 'retard') return false; await pool.query('UPDATE presences SET statut=?, heure_arrivee=?, methode_pointage=?, justification=? WHERE id=?', [finalStatut, finalStatut === 'present' ? now : null, methode_pointage || 'MANUEL', justification || null, existing[0].id]); } else { await pool.query('INSERT INTO presences (eleve_id, date_presence, statut, heure_arrivee, methode_pointage, justification) VALUES (?,?,?,?,?,?)', [eleve_id, today, finalStatut, finalStatut === 'present' ? now : null, methode_pointage || 'MANUEL', justification || null]); } return true; }
 
     static async getByEleve(eleveId, limit = 30) {
         const [r] = await pool.query('SELECT * FROM presences WHERE eleve_id=? ORDER BY date_presence DESC LIMIT ?', [eleveId, limit]);
