@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const { requestLogger } = require('./middleware/logger');
 const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
@@ -41,78 +42,22 @@ try {
 app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true }));
-
-// Logger des requêtes
-app.use((req, res, next) => {
-    const now = new Date();
-    const heure = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    console.log(`[${heure}] ${req.method} ${req.url}`);
-    next();
-});
-
-// Servir les fichiers statiques (avant les routes)
+app.use(requestLogger);
+app.use((req, res, next) => {const now = new Date();const heure = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });console.log(`[${heure}] ${req.method} ${req.url}`);next();});
 app.use('/assets', express.static(path.join(__dirname, '..', 'assets')));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'assets', 'photos')));
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 // ==================== ROUTES API ====================
-
-// Import des routes
-const authRoutes = require('./routes/auth');
-const elevesRoutes = require('./routes/eleves');
-const classesRoutes = require('./routes/classes');
-const presencesRoutes = require('./routes/presences');
-
-// Page d'accueil de l'API
-app.get('/', (req, res) => {
-    res.json({
-        nom: 'API Gestion Scolaire - EduManage',
-        version: '1.0.0',
-        statut: '✅ En ligne',
-        date_lancement: new Date().toISOString(),
-        endpoints: {
-            test: 'GET /api/test',
-            auth: { login: 'POST /api/auth/login', verifier_token: 'GET /api/auth/verify' },
-            eleves: { liste_par_classe: 'GET /api/eleves/classe/:classeId', profil_complet: 'GET /api/eleves/:id', creer_eleve: 'POST /api/eleves', modifier_eleve: 'PUT /api/eleves/:id', supprimer_eleve: 'DELETE /api/eleves/:id' },
-            classes: { liste_classes: 'GET /api/classes', detail_classe: 'GET /api/classes/:id', stats_classe: 'GET /api/classes/:id/stats' },
-            presences: { pointage: 'POST /api/presences', liste_presences: 'GET /api/presences', presences_eleve: 'GET /api/presences/eleve/:eleveId', presences_classe: 'GET /api/presences/classe/:classeId' }
-        },
-        comptes_test: { admin: { username: 'admin', password: 'admin123', role: 'Administrateur' } }
-    });
-});
-
-// Route de test de l'API
-app.get('/api/test', (req, res) => {
-    res.json({ success: true, message: '🎉 API EduManage fonctionnelle !', timestamp: new Date().toISOString(), uptime: process.uptime(), node_version: process.version, environnement: process.env.NODE_ENV || 'development' });
-});
-
-// Montage des routes
-app.use('/api/auth', authRoutes);
-app.use('/api/eleves', elevesRoutes);
-app.use('/api/classes', classesRoutes);
-app.use('/api/presences', presencesRoutes);
-
+const authRoutes = require('./routes/auth');const elevesRoutes = require('./routes/eleves');const classesRoutes = require('./routes/classes');const presencesRoutes = require('./routes/presences');
+app.get('/', (req, res) => {res.json({nom: 'API Gestion Scolaire - EduManage',version: '1.0.0',statut: '✅ En ligne',date_lancement: new Date().toISOString(),endpoints: {test: 'GET /api/test',auth: { login: 'POST /api/auth/login', verifier_token: 'GET /api/auth/verify' },eleves: { liste_par_classe: 'GET /api/eleves/classe/:classeId', profil_complet: 'GET /api/eleves/:id', creer_eleve: 'POST /api/eleves', modifier_eleve: 'PUT /api/eleves/:id', supprimer_eleve: 'DELETE /api/eleves/:id' },classes: { liste_classes: 'GET /api/classes', detail_classe: 'GET /api/classes/:id', stats_classe: 'GET /api/classes/:id/stats' },presences: { pointage: 'POST /api/presences', liste_presences: 'GET /api/presences', presences_eleve: 'GET /api/presences/eleve/:eleveId', presences_classe: 'GET /api/presences/classe/:classeId' }},comptes_test: { admin: { username: 'admin', password: 'admin123', role: 'Administrateur' } }});});
+app.get('/api/test', (req, res) => {res.json({ success: true, message: '🎉 API EduManage fonctionnelle !', timestamp: new Date().toISOString(), uptime: process.uptime(), node_version: process.version, environnement: process.env.NODE_ENV || 'development' });});
+app.use('/api/auth', authRoutes);app.use('/api/eleves', elevesRoutes);app.use('/api/classes', classesRoutes);app.use('/api/presences', presencesRoutes);
 // ==================== GESTION DES ERREURS ====================
 
-// Route 404 pour les APIs
-app.use('/api/*', (req, res) => {
-    res.status(404).json({ success: false, error: 'Route API non trouvée', details: { methode: req.method, url: req.originalUrl, suggestion: `Consultez la documentation à la racine : https://${LOCAL_IP}:${PORT}` } });
-});
-
-// Pour les routes non-API, servir le frontend (SPA)
-app.get('*', (req, res) => {
-    if (req.path.startsWith('/api/')) {
-        return res.status(404).json({ success: false, error: 'Route API non trouvée' });
-    }
-    const indexPath = path.join(__dirname, '..', 'frontend', 'index.html');
-    res.sendFile(indexPath, (err) => { if (err) res.status(404).json({ success: false, error: 'Page non trouvée' }); });
-});
-
-// Gestionnaire d'erreurs global
-app.use((err, req, res, next) => {
-    console.error('❌ Erreur serveur:', err);
-    res.status(500).json({ success: false, error: 'Erreur interne du serveur', message: process.env.NODE_ENV === 'development' ? err.message : 'Une erreur est survenue' });
-});
+app.use('/api/*', (req, res) => {res.status(404).json({ success: false, error: 'Route API non trouvée', details: { methode: req.method, url: req.originalUrl, suggestion: `Consultez la documentation à la racine : https://${LOCAL_IP}:${PORT}` } });});
+app.get('*', (req, res) => {if (req.path.startsWith('/api/')) {return res.status(404).json({ success: false, error: 'Route API non trouvée' });}const indexPath = path.join(__dirname, '..', 'frontend', 'index.html');res.sendFile(indexPath, (err) => { if (err) res.status(404).json({ success: false, error: 'Page non trouvée' }); });});
+app.use((err, req, res, next) => {console.error('❌ Erreur serveur:', err);res.status(500).json({ success: false, error: 'Erreur interne du serveur', message: process.env.NODE_ENV === 'development' ? err.message : 'Une erreur est survenue' });});
 
 // ==================== DÉMARRAGE ====================
 if (sslOptions) {

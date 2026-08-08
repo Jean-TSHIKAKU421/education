@@ -1,11 +1,4 @@
-const express = require('express');
-const router = express.Router();
-const Classe = require('../models/Classe');
-const path = require('path');
-const fs = require('fs');
-const multer = require('multer');
-const pool = require('../config/database');
-
+const express = require('express');const router = express.Router();const Classe = require('../models/Classe');const path = require('path');const fs = require('fs');const multer = require('multer');const pool = require('../config/database');const { getLogs, getCategorie, getCouleurType, getLabelType } = require('../middleware/logger');
 function getAnneeScolaire() { const now = new Date(), mois = now.getMonth() + 1, annee = now.getFullYear(); return mois >= 9 ? `${annee}-${annee + 1}` : `${annee - 1}-${annee}`; }
 
 router.get('/institutions', async (req, res) => { try { const data = await Classe.getInstitutions(); res.json({ success: true, data }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
@@ -65,9 +58,8 @@ router.delete('/option/:id', async (req, res) => {
         res.json({ success: true, message: 'Option supprimée' });
     } catch(e) { res.status(500).json({ success: false, error: e.message }); }
 });
-
 router.post('/ajouter-excel', async (req, res) => { /* ... identique ... */ });
 router.get('/:id/stats', async (req, res) => { try { const data = await Classe.findById(req.params.id); if (!data) return res.status(404).json({ success: false, message: 'Classe non trouvée' }); res.json({ success: true, data }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
 router.post('/nettoyer-ids', async (req, res) => { /* ... identique ... */ });
-
+router.get('/logs', (req, res) => { const logs = getLogs(); const logsAvecCategorie = logs.reverse().map(l => { const categorie = getCategorie(l.type); return { ...l, categorie, couleur: getCouleurType(categorie), label: getLabelType(categorie) }; }); res.json({ success: true, data: logsAvecCategorie }); });
 module.exports = router;
