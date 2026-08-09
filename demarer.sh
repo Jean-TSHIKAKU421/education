@@ -75,9 +75,9 @@ npm run dev 2>&1 | while IFS= read -r line; do
     elif [[ $line == *"SSL chargé"* ]] || [[ $line == *"Certificat SSL"* ]]; then echo -e "${GREEN}  ${CHECK} SSL activé${NC}"
     elif [[ $line == *"app crashed"* ]]; then echo -e "${RED}  ${CROSS} Application crashée - redémarrage...${NC}"
     elif [[ $line == *"Serveur HTTPS démarré"* ]] || [[ $line == *"Serveur HTTP démarré"* ]]; then
-        PORT=$(echo "$line" | grep -oP ':\K\d+')
+        PORT=$(echo "$line" | grep -o '[0-9]\+' | tail -1)
         echo "";echo -e "${GREEN}${BOLD}  ╔════════════════════════════════════════════╗${NC}";echo -e "${GREEN}${BOLD}  ║${NC}  ${WHITE}${BOLD}✅ Serveur démarré avec succès !${NC}${GREEN}${BOLD}       ║${NC}";echo -e "${GREEN}${BOLD}  ╚════════════════════════════════════════════╝${NC}";echo ""
-        echo -e "${CYAN}  🌐 Local       : ${WHITE}https://localhost:${PORT}${NC}";echo -e "${CYAN}  📡 Réseau      : ${WHITE}https://${LOCAL_IP}:${PORT}${NC}";echo -e "${CYAN}  📚 API         : ${WHITE}https://localhost:${PORT}/api${NC}";echo -e "${CYAN}  🔑 Connexion   : ${WHITE}https://localhost:${PORT}/login.html${NC}";echo -e "${CYAN}  👤 Compte      : ${WHITE}admin / admin123${NC}";echo "";echo -e "${PURPLE}  Ctrl+C pour arrêter${NC}";echo ""
+        echo -e "${CYAN}  🌐 Local       : ${WHITE}https://localhost:${PORT}${NC}";echo -e "${CYAN}  📡 Réseau      : ${WHITE}https://${LOCAL_IP}:${PORT}${NC}";echo -e "${CYAN}  📚 API         : ${WHITE}https://localhost:${PORT}/api${NC}";echo -e "${CYAN}  🔑 Connexion   : ${WHITE}https://localhost:${PORT}/login.html${NC}";echo "";echo -e "${PURPLE}  Ctrl+C pour arrêter${NC}";echo ""
     elif [[ $line == *"Erreur"* ]] || [[ $line == *"error"* ]] || [[ $line == *"Échec"* ]] || [[ $line == *"crashed"* ]]; then echo -e "${RED}  ${CROSS} $line${NC}"
     elif [[ $line == *"⚠️"* ]] || [[ $line == *"warning"* ]] || [[ $line == *"WARN"* ]]; then echo -e "${YELLOW}  ${WARNING} $line${NC}"
     elif [[ $line == *"GET"* ]] || [[ $line == *"POST"* ]] || [[ $line == *"PUT"* ]] || [[ $line == *"DELETE"* ]]; then echo -e "${CYAN}  ${ARROW} $line${NC}"
