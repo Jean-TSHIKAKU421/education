@@ -1,167 +1,20 @@
 const pool = require('../config/database');
 
 class Classe {
-    static async getInstitutions() {
-        const [r] = await pool.query('SELECT * FROM institutions ORDER BY FIELD(niveau,"maternelle","primaire","secondaire")');
-        return r;
-    }
-
-    static async findByInstitution(institutionId) {
-        const today = new Date().toISOString().split('T')[0];
-        const [rows] = await pool.query(`SELECT c.id, c.nom_classe, c.niveau_detail, c.option_id, o.nom as option_nom, o.code as option_code, c.capacite, COUNT(DISTINCT e.id) as nb_eleves, COUNT(DISTINCT CASE WHEN p.statut='present' THEN e.id END) as presents, COUNT(DISTINCT CASE WHEN p.statut='absent' THEN e.id END) as absents FROM classes c LEFT JOIN options_secondaire o ON c.option_id=o.id LEFT JOIN eleves e ON c.id=e.classe_id LEFT JOIN presences p ON e.id=p.eleve_id AND p.date_presence=? WHERE c.institution_id=? GROUP BY c.id ORDER BY c.niveau_detail, c.nom_classe`, [today, institutionId]);
-        return rows.map(c => ({ ...c, taux: c.nb_eleves > 0 ? ((c.presents / c.nb_eleves) * 100).toFixed(1) : '0.0' }));
-    }
-
-    static async findAll() {
-        const [rows] = await pool.query(`SELECT c.id, c.nom_classe, c.niveau_detail, c.option_id, o.nom as option_nom, o.code as option_code, COUNT(e.id) as nb_eleves FROM classes c LEFT JOIN options_secondaire o ON c.option_id=o.id LEFT JOIN eleves e ON c.id=e.classe_id GROUP BY c.id ORDER BY c.niveau_detail, c.nom_classe`);
-        return rows;
-    }
-
-    static async findById(id) {
-        const [classe] = await pool.query('SELECT c.*, o.nom as option_nom, o.code as option_code FROM classes c LEFT JOIN options_secondaire o ON c.option_id=o.id WHERE c.id=?', [id]);
-        if (!classe.length) return null;
-        const [nb] = await pool.query('SELECT COUNT(*) as total FROM eleves WHERE classe_id=?', [id]);
-        const today = new Date().toISOString().split('T')[0];
-        const [pres] = await pool.query(`SELECT COUNT(CASE WHEN p.statut='present' THEN 1 END) as presents, COUNT(CASE WHEN p.statut='absent' THEN 1 END) as absents FROM presences p JOIN eleves e ON p.eleve_id=e.id WHERE e.classe_id=? AND p.date_presence=?`, [id, today]);
-        const t = nb[0].total, p = pres[0].presents || 0, a = pres[0].absents || 0;
-        return { ...classe[0], nb_eleves: t, presents: p, absents: a, taux_presence: t > 0 ? ((p / t) * 100).toFixed(1) : '0.0' };
-    }
-
-    static async getOptionsByNiveau(institutionId, niveauDetail) {
-        const [rows] = await pool.query(`SELECT c.id, c.nom_classe, c.niveau_detail, c.option_id, o.nom as option_nom, o.code as option_code, c.capacite, COUNT(e.id) as nb_eleves FROM classes c JOIN options_secondaire o ON c.option_id=o.id LEFT JOIN eleves e ON c.id=e.classe_id WHERE c.institution_id=? AND c.niveau_detail=? GROUP BY c.id ORDER BY o.nom`, [institutionId, niveauDetail]);
-        return rows;
-    }
-
-    static async getOptions() {
-        const [r] = await pool.query('SELECT * FROM options_secondaire ORDER BY nom');
-        return r;
-    }
-
+    static async getInstitutions() { const [r] = await pool.query('SELECT * FROM institutions ORDER BY FIELD(niveau,"maternelle","primaire","secondaire")'); return r; }
+    static async findByInstitution(institutionId) { const today = new Date().toISOString().split('T')[0]; const [rows] = await pool.query(`SELECT c.id, c.nom_classe, c.niveau_detail, c.option_id, o.nom as option_nom, o.code as option_code, c.capacite, COUNT(DISTINCT e.id) as nb_eleves, COUNT(DISTINCT CASE WHEN p.statut='present' THEN e.id END) as presents, COUNT(DISTINCT CASE WHEN p.statut='absent' THEN e.id END) as absents FROM classes c LEFT JOIN options_secondaire o ON c.option_id=o.id LEFT JOIN eleves e ON c.id=e.classe_id LEFT JOIN presences p ON e.id=p.eleve_id AND p.date_presence=? WHERE c.institution_id=? GROUP BY c.id ORDER BY c.niveau_detail, c.nom_classe`, [today, institutionId]); return rows.map(c => ({ ...c, taux: c.nb_eleves > 0 ? ((c.presents / c.nb_eleves) * 100).toFixed(1) : '0.0' })); }
+    static async findAll() { const [rows] = await pool.query(`SELECT c.id, c.nom_classe, c.niveau_detail, c.option_id, o.nom as option_nom, o.code as option_code, COUNT(e.id) as nb_eleves FROM classes c LEFT JOIN options_secondaire o ON c.option_id=o.id LEFT JOIN eleves e ON c.id=e.classe_id GROUP BY c.id ORDER BY c.niveau_detail, c.nom_classe`); return rows; }
+    static async findById(id) { const [classe] = await pool.query('SELECT c.*, o.nom as option_nom, o.code as option_code FROM classes c LEFT JOIN options_secondaire o ON c.option_id=o.id WHERE c.id=?', [id]); if (!classe.length) return null; const [nb] = await pool.query('SELECT COUNT(*) as total FROM eleves WHERE classe_id=?', [id]); const today = new Date().toISOString().split('T')[0]; const [pres] = await pool.query(`SELECT COUNT(CASE WHEN p.statut='present' THEN 1 END) as presents, COUNT(CASE WHEN p.statut='absent' THEN 1 END) as absents FROM presences p JOIN eleves e ON p.eleve_id=e.id WHERE e.classe_id=? AND p.date_presence=?`, [id, today]); const t = nb[0].total, p = pres[0].presents || 0, a = pres[0].absents || 0; return { ...classe[0], nb_eleves: t, presents: p, absents: a, taux_presence: t > 0 ? ((p / t) * 100).toFixed(1) : '0.0' }; }
+    static async getOptionsByNiveau(institutionId, niveauDetail) { const [rows] = await pool.query(`SELECT c.id, c.nom_classe, c.niveau_detail, c.option_id, o.nom as option_nom, o.code as option_code, c.capacite, COUNT(e.id) as nb_eleves FROM classes c JOIN options_secondaire o ON c.option_id=o.id LEFT JOIN eleves e ON c.id=e.classe_id WHERE c.institution_id=? AND c.niveau_detail=? GROUP BY c.id ORDER BY o.nom`, [institutionId, niveauDetail]); return rows; }
+    static async getOptions() { const [r] = await pool.query('SELECT * FROM options_secondaire ORDER BY nom'); return r; }
     static async createInstitution(nom, niveau, regime = 'ANGLAIS') { const [r] = await pool.query('INSERT INTO institutions (nom, niveau, regime) VALUES (?,?,?)', [nom, niveau, regime]); return r.insertId; }
-
-    static async createInstitutionWithOptions({ nom, options }) {
-        const conn = await pool.getConnection();
-        try {
-            await conn.beginTransaction();
-            const [inst] = await conn.query('INSERT INTO institutions (nom, niveau) VALUES (?,?)', [nom, 'secondaire']);
-            const instId = inst.insertId;
-            for (const opt of options) {
-                const [optRes] = await conn.query('INSERT INTO options_secondaire (code, nom) VALUES (?,?)', [opt.code, opt.nom]);
-                for (const niv of ['1ère', '2ème', '3ème', '4ème']) {
-                    await conn.query('INSERT INTO classes (institution_id, nom_classe, niveau_detail, option_id, capacite) VALUES (?,?,?,?,35)', [instId, `${niv} ${opt.nom}`, niv, optRes.insertId]);
-                }
-            }
-            for (const n of ['7ème E.B', '8ème E.B']) {
-                await conn.query('INSERT INTO classes (institution_id, nom_classe, niveau_detail, capacite) VALUES (?,?,?,40)', [instId, n, n.split(' ')[0]]);
-            }
-            await conn.commit();
-            return instId;
-        } catch (e) { await conn.rollback(); throw e; }
-        finally { conn.release(); }
-    }
-
-    static async updateInstitution(id, { nom, adresse, telephone, email }) {
-        // Récupérer le niveau pour le renommage du logo
-        const [inst] = await pool.query('SELECT niveau FROM institutions WHERE id=?', [id]);
-        const niveau = inst.length ? inst[0].niveau : null;
-        
-        await pool.query('UPDATE institutions SET nom=?, adresse=?, telephone=?, email=? WHERE id=?', [nom || '', adresse || null, telephone || null, email || null, id]);
-        
-        return niveau; // Retourne le niveau pour que la route puisse renommer le fichier
-    }
-
-    static async deleteInstitution(id) {
-        const conn = await pool.getConnection();
-        try {
-            const [inst] = await conn.query('SELECT niveau FROM institutions WHERE id=?', [id]);
-            const niveau = inst.length ? inst[0].niveau : null;
-            
-            await conn.beginTransaction();
-            await conn.query('SET FOREIGN_KEY_CHECKS=0');
-            
-            await conn.query('DELETE p FROM presences p INNER JOIN eleves e ON p.eleve_id=e.id INNER JOIN classes c ON e.classe_id=c.id WHERE c.institution_id=?', [id]);
-            await conn.query('DELETE r FROM responsables r INNER JOIN eleves e ON r.eleve_id=e.id INNER JOIN classes c ON e.classe_id=c.id WHERE c.institution_id=?', [id]);
-            await conn.query('DELETE e FROM eleves e INNER JOIN classes c ON e.classe_id=c.id WHERE c.institution_id=?', [id]);
-            await conn.query('DELETE FROM classes WHERE institution_id=?', [id]);
-            
-            if (niveau === 'secondaire') {
-                await conn.query('DELETE FROM options_secondaire');
-                await conn.query('ALTER TABLE options_secondaire AUTO_INCREMENT = 1');
-            }
-            
-            await conn.query('DELETE FROM institutions WHERE id=?', [id]);
-            
-            // Vérifier s'il reste des institutions
-            const [count] = await conn.query('SELECT COUNT(*) as total FROM institutions');
-            
-            if (count[0].total === 0) {
-                // Plus aucune institution : tout nettoyer + supprimer l'admin
-                await conn.query('DELETE FROM presences');
-                await conn.query('DELETE FROM responsables');
-                await conn.query('DELETE FROM eleves');
-                await conn.query('DELETE FROM classes');
-                await conn.query('DELETE FROM options_secondaire');
-                await conn.query('DELETE FROM administrateurs WHERE role != "super_admin"');
-                
-                await conn.query('ALTER TABLE presences AUTO_INCREMENT = 1');
-                await conn.query('ALTER TABLE responsables AUTO_INCREMENT = 1');
-                await conn.query('ALTER TABLE eleves AUTO_INCREMENT = 1');
-                await conn.query('ALTER TABLE classes AUTO_INCREMENT = 1');
-                await conn.query('ALTER TABLE options_secondaire AUTO_INCREMENT = 1');
-            }
-            
-            await conn.query('SET @count = 0');
-            await conn.query('UPDATE institutions SET id = @count:= @count + 1 ORDER BY id');
-            await conn.query('ALTER TABLE institutions AUTO_INCREMENT = 1');
-            
-            await conn.query('SET FOREIGN_KEY_CHECKS = 1');
-            await conn.commit();
-        } catch(e) { await conn.rollback(); throw e; }
-        finally { conn.release(); }
-    }
-
-    static async createClasse(institutionId, nom_classe, niveau_detail, capacite) {
-        await pool.query('INSERT INTO classes (institution_id, nom_classe, niveau_detail, capacite) VALUES (?,?,?,?)', [institutionId, nom_classe, niveau_detail, capacite]);
-    }
-
-    static async createOption({ code, nom, institution_id }) {
-        const conn = await pool.getConnection();
-        try {
-            const [optRes] = await conn.query('INSERT INTO options_secondaire (code, nom) VALUES (?,?)', [code, nom]);
-            for (const niv of ['1ère', '2ème', '3ème', '4ème']) {
-                await conn.query('INSERT INTO classes (institution_id, nom_classe, niveau_detail, option_id, capacite) VALUES (?,?,?,?,35)', [institution_id, `${niv} ${nom}`, niv, optRes.insertId]);
-            }
-            return optRes.insertId;
-        } finally { conn.release(); }
-    }
-
-    static async updateOption(id, { code, nom }) {
-        await pool.query('UPDATE options_secondaire SET code=?, nom=? WHERE id=?', [code, nom, id]);
-    }
-
-    static async deleteOption(id) {
-        const conn = await pool.getConnection();
-        try {
-            const [opt] = await conn.query('SELECT * FROM options_secondaire WHERE id=?', [id]);
-            if (!opt.length) return null;
-            const nom = opt[0].nom;
-            await conn.beginTransaction();
-            await conn.query('SET FOREIGN_KEY_CHECKS=0');
-            const [classes] = await conn.query('SELECT id FROM classes WHERE option_id=?', [id]);
-            for (const c of classes) {
-                await conn.query('DELETE FROM presences WHERE eleve_id IN (SELECT id FROM eleves WHERE classe_id=?)', [c.id]);
-                await conn.query('DELETE FROM responsables WHERE eleve_id IN (SELECT id FROM eleves WHERE classe_id=?)', [c.id]);
-                await conn.query('DELETE FROM eleves WHERE classe_id=?', [c.id]);
-            }
-            await conn.query('DELETE FROM classes WHERE option_id=?', [id]);
-            await conn.query('DELETE FROM options_secondaire WHERE id=?', [id]);
-            await conn.query('SET @count=0'); await conn.query('UPDATE options_secondaire SET id=@count:=@count+1 ORDER BY id'); await conn.query('ALTER TABLE options_secondaire AUTO_INCREMENT=1');
-            await conn.query('SET FOREIGN_KEY_CHECKS=1');
-            await conn.commit();
-            return nom;
-        } catch (e) { await conn.rollback(); throw e; }
-        finally { conn.release(); }
-    }
+    static async createInstitutionWithOptions({ nom, options, regime = 'ANGLAIS' }) { const conn = await pool.getConnection(); try { await conn.beginTransaction(); const [inst] = await conn.query('INSERT INTO institutions (nom, niveau, regime) VALUES (?,?,?)', [nom, 'secondaire', regime]); const instId = inst.insertId; for (const opt of options) { const [optRes] = await conn.query('INSERT INTO options_secondaire (code, nom) VALUES (?,?)', [opt.code, opt.nom]); for (const niv of ['1ère', '2ème', '3ème', '4ème']) { await conn.query('INSERT INTO classes (institution_id, nom_classe, niveau_detail, option_id, capacite) VALUES (?,?,?,?,35)', [instId, `${niv} ${opt.nom}`, niv, optRes.insertId]); } } for (const n of ['7ème E.B', '8ème E.B']) { await conn.query('INSERT INTO classes (institution_id, nom_classe, niveau_detail, capacite) VALUES (?,?,?,40)', [instId, n, n.split(' ')[0]]); } await conn.commit(); return instId; } catch(e) { await conn.rollback(); throw e; } finally { conn.release(); } }
+    static async updateInstitution(id, { nom, adresse, telephone, email, regime }) { const fields = []; const values = []; if (nom !== undefined) { fields.push('nom=?'); values.push(nom); } if (adresse !== undefined) { fields.push('adresse=?'); values.push(adresse); } if (telephone !== undefined) { fields.push('telephone=?'); values.push(telephone); } if (email !== undefined) { fields.push('email=?'); values.push(email); } if (regime !== undefined) { fields.push('regime=?'); values.push(regime); } if (fields.length > 0) { values.push(id); await pool.query(`UPDATE institutions SET ${fields.join(',')} WHERE id=?`, values); } }
+    static async deleteInstitution(id) { const conn = await pool.getConnection(); try { await conn.beginTransaction(); const [count] = await conn.query('SELECT COUNT(*) as total FROM institutions'); if (count[0].total <= 1) { await conn.query('SET FOREIGN_KEY_CHECKS = 0'); await conn.query('DELETE FROM presences'); await conn.query('DELETE FROM responsables'); await conn.query('DELETE FROM eleves'); await conn.query('DELETE FROM classes'); await conn.query('DELETE FROM options_secondaire'); await conn.query('DELETE FROM institutions'); await conn.query('DELETE FROM administrateurs WHERE role != "super_admin"'); await conn.query('ALTER TABLE eleves AUTO_INCREMENT = 1'); await conn.query('ALTER TABLE classes AUTO_INCREMENT = 1'); await conn.query('ALTER TABLE options_secondaire AUTO_INCREMENT = 1'); await conn.query('ALTER TABLE institutions AUTO_INCREMENT = 1'); await conn.query('ALTER TABLE presences AUTO_INCREMENT = 1'); await conn.query('ALTER TABLE responsables AUTO_INCREMENT = 1'); await conn.query('ALTER TABLE administrateurs AUTO_INCREMENT = 1'); await conn.query('INSERT INTO administrateurs (id, username, password_hash, nom_complet, role) VALUES (1, "admin", "$2b$10$YuwYOrLoQmAzbmq.8hNhu.9VlfZW2K76ky6JjvYcd3kj8j9VcBOH6", "Administrateur Principal", "super_admin")'); await conn.query('SET FOREIGN_KEY_CHECKS = 1'); } else { await conn.query('DELETE FROM institutions WHERE id=?', [id]); } await conn.commit(); } catch(e) { await conn.rollback(); throw e; } finally { conn.release(); } }
+    static async createClasse(institutionId, nom_classe, niveau_detail, capacite) { await pool.query('INSERT INTO classes (institution_id, nom_classe, niveau_detail, capacite) VALUES (?,?,?,?)', [institutionId, nom_classe, niveau_detail, capacite]); }
+    static async createOption({ code, nom, institution_id }) { const conn = await pool.getConnection(); try { const [optRes] = await conn.query('INSERT INTO options_secondaire (code, nom) VALUES (?,?)', [code, nom]); for (const niv of ['1ère', '2ème', '3ème', '4ème']) { await conn.query('INSERT INTO classes (institution_id, nom_classe, niveau_detail, option_id, capacite) VALUES (?,?,?,?,35)', [institution_id, `${niv} ${nom}`, niv, optRes.insertId]); } return optRes.insertId; } finally { conn.release(); } }
+    static async updateOption(id, { code, nom }) { await pool.query('UPDATE options_secondaire SET code=?, nom=? WHERE id=?', [code, nom, id]); }
+    static async deleteOption(id) { const conn = await pool.getConnection(); try { const [opt] = await conn.query('SELECT * FROM options_secondaire WHERE id=?', [id]); if (!opt.length) return null; const nom = opt[0].nom; await conn.beginTransaction(); await conn.query('DELETE FROM options_secondaire WHERE id=?', [id]); await conn.commit(); return nom; } catch(e) { await conn.rollback(); throw e; } finally { conn.release(); } }
 }
 
 module.exports = Classe;
