@@ -19,26 +19,7 @@ CREATE TABLE `administrateurs` (
   `password_hash` varchar(255) NOT NULL,
   `nom_complet` varchar(100) NOT NULL,
   `role` enum('super_admin','admin','secretaire') DEFAULT 'admin',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-INSERT INTO `administrateurs` (`username`, `password_hash`, `nom_complet`, `role`) VALUES
-('super-admin', '$2b$10$FBePQl7VckkLM6fGMRq5E.rpr01yXpsFEHXpf9cB.teUp.KWfqj1a', 'Jean TSHIKAKU', 'super_admin');
-
-CREATE TABLE `institutions` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `nom` varchar(150) NOT NULL,
-  `niveau` enum('maternelle','primaire','secondaire') NOT NULL,
-  `regime` enum('ANGLAIS','FRANCAIS') DEFAULT 'ANGLAIS',
-  `adresse` text DEFAULT NULL,
-  `telephone` varchar(20) DEFAULT NULL,
-  `email` varchar(100) DEFAULT NULL,
-  `logo` varchar(255) DEFAULT '/assets/logo-ecole.png',
-  `annee_scolaire` varchar(9) DEFAULT '2024-2025',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`)
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 CREATE TABLE `options_secondaire` (
@@ -111,3 +92,12 @@ CREATE TABLE `responsables` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 COMMIT;
+
+
+ALTER TABLE eleves ADD COLUMN photo VARCHAR(255) NULL AFTER qr_code;
+ALTER TABLE presences MODIFY COLUMN statut ENUM('present','absent','retard','excuse','justifie') NOT NULL;
+ALTER TABLE presences MODIFY COLUMN methode_pointage ENUM('QR','QR+EMPREINTE','MANUEL','AUTO') DEFAULT 'MANUEL';
+ALTER TABLE `institutions` ADD COLUMN `regime` ENUM('ANGLAIS','FRANCAIS') DEFAULT 'ANGLAIS' AFTER `niveau`;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
