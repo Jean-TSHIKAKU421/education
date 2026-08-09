@@ -1,5 +1,5 @@
 #!/bin/bash
-RED='\033[0;31m';GREEN='\033[0;32m';YELLOW='\033[1;33m';BLUE='\033[0;34m';CYAN='\033[0;36m';WHITE='\033[1;37m';NC='\033[0m';BOLD='\033[1m'
+RED='\033[0;31m';GREEN='\033[0;32m';YELLOW='\033[1;33m';BLUE='\033[0;34m';PURPLE='\033[0;35m';CYAN='\033[0;36m';WHITE='\033[1;37m';NC='\033[0m';BOLD='\033[1m'
 CHECK="✓";CROSS="✗";ARROW="→";GEAR="⚙";DATABASE="🗄";PACKAGE="📦";ROCKET="🚀";WARNING="⚠";KEY="🔑";DB="📋";OS_ICON="💻"
 
 clear
@@ -9,9 +9,8 @@ echo -e "${BLUE}${BOLD}  ║${NC}  ${WHITE}${BOLD}EduManage - Démarrage Automat
 echo -e "${BLUE}${BOLD}  ╚════════════════════════════════════════════╝${NC}"
 echo ""
 
-# Détection OS
 echo -e "${YELLOW}${OS_ICON}  Détection du système...${NC}"
-OS="unknown";PKG_MANAGER="";IS_WINDOWS=false
+OS="unknown";PKG_MANAGER="";MYSQL_CMD="";IS_WINDOWS=false;XAMPP_INSTALLED=false
 if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]] || [[ "$OSTYPE" == "win32" ]] || [[ -n "$WINDIR" ]]; then OS="windows";IS_WINDOWS=true
 elif [ -f /etc/os-release ]; then . /etc/os-release;OS=$ID
     case $ID in ubuntu|debian|kali|parrot|linuxmint|elementary|pop|zorin|mx|deepin) PKG_MANAGER="apt";;fedora|centos|rhel|rocky|alma) PKG_MANAGER="dnf";;arch|manjaro|endeavouros|garuda) PKG_MANAGER="pacman";;opensuse*) PKG_MANAGER="zypper";;esac
@@ -19,80 +18,66 @@ elif [[ "$OSTYPE" == "darwin"* ]]; then OS="macos";PKG_MANAGER="brew";fi
 echo -e "${GREEN}  ${CHECK} $OS${NC}"
 echo ""
 
-# Node.js
 echo -e "${YELLOW}${GEAR}  Vérification Node.js...${NC}"
 command -v node &> /dev/null || { echo -e "${RED}  ${CROSS} Node.js requis${NC}";exit 1;}
 echo -e "${GREEN}  ${CHECK} Node.js $(node -v)${NC}"
 echo ""
 
-# Dépendances backend
 echo -e "${YELLOW}${PACKAGE}  Dépendances backend...${NC}"
 cd backend 2>/dev/null || { echo -e "${RED}  ${CROSS} Dossier backend introuvable${NC}";exit 1;}
-[ ! -d "node_modules" ] && { npm install;[ $? -ne 0 ] && { echo -e "${RED}  ${CROSS} Échec${NC}";cd ..;exit 1;};}
+[ ! -d "node_modules" ] && { npm install 2>&1 | while IFS= read -r line; do echo -e "  $line"; done;[ ${PIPESTATUS[0]} -ne 0 ] && { echo -e "${RED}  ${CROSS} Échec${NC}";cd ..;exit 1;};}
 echo -e "${GREEN}  ${CHECK} Packages OK${NC}"
 cd ..
 echo ""
 
-# MySQL - Tentative rapide
-echo -e "${YELLOW}${DATABASE}  Base de données...${NC}"
-MYSQL_CMD=""
-DB_OK=false
-
-# Chercher MySQL/MariaDB/XAMPP
-if [ -f "/opt/lampp/bin/mysql" ]; then
+echo -e "${YELLOW}${DATABASE}  Configuration base de données...${NC}"
+if [ -f "/opt/lampp/lampp" ]; then
+    echo -e "${GREEN}  ${CHECK} XAMPP trouvé${NC}"
     echo -e "${CYAN}  ${ARROW} Démarrage XAMPP...${NC}"
-    sudo /opt/lampp/lampp start 2>/dev/null &
+    sudo /opt/lampp/lampp start 2>&1 | while IFS= read -r line; do
+        if [[ $line == *"already running"* ]]; then echo -e "${CYAN}     $line${NC}"
+        elif [[ $line == *"Starting"* ]]; then echo -e "${GREEN}     $line${NC}"
+        else echo -e "     $line"; fi
+    done
     sleep 3
     MYSQL_CMD="sudo /opt/lampp/bin/mysql"
-elif command -v mariadb &> /dev/null; then
-    sudo systemctl start mariadb 2>/dev/null || sudo service mariadb start 2>/dev/null
-    sleep 2
-    MYSQL_CMD="sudo mariadb"
-elif command -v mysql &> /dev/null; then
-    sudo systemctl start mysql 2>/dev/null || sudo service mysql start 2>/dev/null
-    sleep 2
-    MYSQL_CMD="sudo mysql"
+    XAMPP_INSTALLED=true
+elif command -v mariadb &> /dev/null; then MYSQL_CMD="sudo mariadb"
+elif command -v mysql &> /dev/null; then MYSQL_CMD="sudo mysql"
 else
-    echo -e "${YELLOW}  ${WARNING} MySQL/MariaDB non trouvé - installation...${NC}"
-    case $PKG_MANAGER in
-        apt) sudo apt install -y mariadb-server 2>/dev/null;;
-        dnf) sudo dnf install -y mysql-server 2>/dev/null;;
-        pacman) sudo pacman -S --noconfirm mysql 2>/dev/null;;
-        brew) brew install mysql 2>/dev/null;;
-    esac
+    echo -e "${YELLOW}  ${WARNING} Installation MariaDB...${NC}"
+    case $PKG_MANAGER in apt) sudo apt install -y mariadb-server 2>&1 | while IFS= read -r line; do echo -e "     $line"; done;;dnf) sudo dnf install -y mysql-server 2>&1 | while IFS= read -r line; do echo -e "     $line"; done;;pacman) sudo pacman -S --noconfirm mysql 2>&1 | while IFS= read -r line; do echo -e "     $line"; done;;brew) brew install mysql 2>&1 | while IFS= read -r line; do echo -e "     $line"; done;;esac
     command -v mariadb &> /dev/null && MYSQL_CMD="sudo mariadb" || MYSQL_CMD="sudo mysql"
-    sudo systemctl start mariadb 2>/dev/null || sudo systemctl start mysql 2>/dev/null
+fi
+
+if [ "$XAMPP_INSTALLED" != true ]; then
+    echo -e "${CYAN}  ${ARROW} Démarrage MySQL...${NC}"
+    sudo systemctl start mariadb 2>/dev/null || sudo systemctl start mysql 2>/dev/null || sudo service mysql start 2>/dev/null
+    sleep 3
+fi
+
+CONNECTED=false
+for i in 1 2; do
+    if $MYSQL_CMD -e "SELECT 1;" &>/dev/null 2>&1; then CONNECTED=true;echo -e "${GREEN}  ${CHECK} MySQL connecté${NC}";break;fi
     sleep 2
-fi
+done
+[ "$CONNECTED" = false ] && { echo -e "${YELLOW}  ${WARNING} MySQL inaccessible - mode dégradé${NC}"; }
+echo ""
 
-# Test connexion rapide (max 2 tentatives)
-if [ -n "$MYSQL_CMD" ]; then
-    for i in 1 2; do
-        if $MYSQL_CMD -e "SELECT 1;" &>/dev/null 2>&1; then DB_OK=true;break;fi
-        sleep 2
-    done
-fi
-
-if [ "$DB_OK" = true ]; then
-    echo -e "${GREEN}  ${CHECK} MySQL connecté${NC}"
+if [ "$CONNECTED" = true ]; then
+    echo -e "${YELLOW}${DB}  Base de données...${NC}"
     DB_NAME="education"
     DB_EXISTS=$($MYSQL_CMD -e "SHOW DATABASES LIKE '$DB_NAME';" 2>/dev/null | grep "$DB_NAME")
     if [ -z "$DB_EXISTS" ]; then
-        echo -e "${CYAN}  ${ARROW} Création base...${NC}"
+        echo -e "${CYAN}  ${ARROW} Création '$DB_NAME'...${NC}"
         $MYSQL_CMD -e "CREATE DATABASE IF NOT EXISTS $DB_NAME CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;" 2>/dev/null
-        for sql in "shema.sql" "seed.sql"; do
-            [ -f "../database/$sql" ] && $MYSQL_CMD "$DB_NAME" < "../database/$sql" 2>/dev/null
-        done
-        echo -e "${GREEN}  ${CHECK} Base prête${NC}"
-    fi
-    # Migration regime
-    $MYSQL_CMD "$DB_NAME" -e "SHOW COLUMNS FROM institutions LIKE 'regime';" 2>/dev/null | grep -q "regime" || $MYSQL_CMD "$DB_NAME" -e "ALTER TABLE institutions ADD COLUMN regime ENUM('ANGLAIS','FRANCAIS') DEFAULT 'ANGLAIS' AFTER niveau;" 2>/dev/null
-else
-    echo -e "${YELLOW}  ${WARNING} MySQL inaccessible - le serveur démarrera en mode dégradé${NC}"
+        [ $? -eq 0 ] && echo -e "${GREEN}  ${CHECK} Base créée${NC}"
+        for sql in "shema.sql" "seed.sql"; do [ -f "../database/$sql" ] && $MYSQL_CMD "$DB_NAME" < "../database/$sql" 2>/dev/null && echo -e "${GREEN}  ${CHECK} $sql importé${NC}"; done
+    else echo -e "${GREEN}  ${CHECK} Base existante${NC}"; fi
+    $MYSQL_CMD "$DB_NAME" -e "SHOW COLUMNS FROM institutions LIKE 'regime';" 2>/dev/null | grep -q "regime" || { $MYSQL_CMD "$DB_NAME" -e "ALTER TABLE institutions ADD COLUMN regime ENUM('ANGLAIS','FRANCAIS') DEFAULT 'ANGLAIS' AFTER niveau;" 2>/dev/null;echo -e "${GREEN}  ${CHECK} Colonne regime à jour${NC}"; }
 fi
 echo ""
 
-# SSL
 echo -e "${YELLOW}${KEY}  Certificats SSL...${NC}"
 cd backend
 if [ ! -f "key.pem" ] || [ ! -f "cert.pem" ]; then
@@ -101,9 +86,48 @@ if [ ! -f "key.pem" ] || [ ! -f "cert.pem" ]; then
 else echo -e "${GREEN}  ${CHECK} SSL présent${NC}";fi
 echo ""
 
-# Démarrage
 echo -e "${YELLOW}${ROCKET}  Démarrage du serveur...${NC}"
-echo -e "${CYAN}  ${ARROW} https://localhost:3443${NC}"
-echo -e "${BLUE}${BOLD}  ─────────────────────────────────────────${NC}"
 echo ""
-npm run dev
+
+LOCAL_IP=$(hostname -I 2>/dev/null | awk '{print $1}')
+[ -z "$LOCAL_IP" ] && LOCAL_IP="localhost"
+
+npm run dev 2>&1 | while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    if [[ $line == *"Connecté à la base de données"* ]] || [[ $line == *"Connecté"* ]]; then
+        echo -e "${GREEN}  ${CHECK} Base de données connectée${NC}"
+    elif [[ $line == *"non disponible"* ]] || [[ $line == *"mode dégradé"* ]]; then
+        echo -e "${YELLOW}  ${WARNING} Base de données non disponible${NC}"
+    elif [[ $line == *"SSL chargé"* ]] || [[ $line == *"Certificat SSL"* ]]; then
+        echo -e "${GREEN}  ${CHECK} SSL activé${NC}"
+    elif [[ $line == *"nodemon"* ]] && [[ $line == *"starting"* ]]; then
+        echo -e "${CYAN}  ${ARROW} Nodemon démarre...${NC}"
+    elif [[ $line == *"nodemon"* ]] && [[ $line == *"restart"* ]]; then
+        echo -e "${YELLOW}  ${WARNING} Redémarrage...${NC}"
+    elif [[ $line == *"nodemon"* ]] && [[ $line == *"crashed"* ]]; then
+        echo -e "${RED}  ${CROSS} Application crashée${NC}"
+    elif [[ $line == *"Serveur HTTPS démarré"* ]] || [[ $line == *"Serveur HTTP démarré"* ]]; then
+        PORT=$(echo "$line" | grep -oP ':\K\d+')
+        echo ""
+        echo -e "${GREEN}${BOLD}  ╔════════════════════════════════════════════╗${NC}"
+        echo -e "${GREEN}${BOLD}  ║${NC}  ${WHITE}${BOLD}✅ Serveur démarré avec succès !${NC}${GREEN}${BOLD}       ║${NC}"
+        echo -e "${GREEN}${BOLD}  ╚════════════════════════════════════════════╝${NC}"
+        echo ""
+        echo -e "${CYAN}  🌐 Local       : ${WHITE}https://localhost:${PORT}${NC}"
+        echo -e "${CYAN}  📡 Réseau      : ${WHITE}https://${LOCAL_IP}:${PORT}${NC}"
+        echo -e "${CYAN}  📚 API         : ${WHITE}https://localhost:${PORT}/api${NC}"
+        echo -e "${CYAN}  🔑 Connexion   : ${WHITE}https://localhost:${PORT}/login.html${NC}"
+        echo -e "${CYAN}  👤 Compte      : ${WHITE}admin / admin123${NC}"
+        echo ""
+        echo -e "${PURPLE}  Ctrl+C pour arrêter${NC}"
+        echo ""
+    elif [[ $line == *"Erreur"* ]] || [[ $line == *"error"* ]] || [[ $line == *"Échec"* ]] || [[ $line == *"crashed"* ]]; then
+        echo -e "${RED}  ${CROSS} $line${NC}"
+    elif [[ $line == *"⚠️"* ]] || [[ $line == *"warning"* ]] || [[ $line == *"WARN"* ]]; then
+        echo -e "${YELLOW}  ${WARNING} $line${NC}"
+    elif [[ $line == *"GET"* ]] || [[ $line == *"POST"* ]] || [[ $line == *"PUT"* ]] || [[ $line == *"DELETE"* ]]; then
+        echo -e "${CYAN}  ${ARROW} $line${NC}"
+    else
+        echo -e "  $line"
+    fi
+done
