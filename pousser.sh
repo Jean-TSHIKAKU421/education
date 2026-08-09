@@ -15,34 +15,47 @@ echo -e "${CYAN}  ${ARROW} Branche : ${BOLD}$BRANCH${NC}"
 echo -e "${CYAN}  ${ARROW} Remote  : ${BOLD}$REMOTE${NC}"
 echo ""
 echo -e "${YELLOW}${GIT}  Ajout des fichiers...${NC}"
-git add . 2>&1 | while IFS= read -r line; do echo -e "  $line"; done
+git add . 2>/dev/null
 ADDED=$(git diff --cached --name-only 2>/dev/null | wc -l)
 [ $? -eq 0 ] && echo -e "${GREEN}  ${CHECK} $ADDED fichier(s) ajouté(s)${NC}" || { echo -e "${RED}  ${CROSS} Erreur${NC}";exit 1; }
 echo ""
 echo -e "${YELLOW}${GIT}  Création du commit...${NC}"
 DATE_HEURE=$(date +"%Y-%m-%d %H:%M:%S")
-git commit -m "Mise à jour - $DATE_HEURE" > /tmp/git-commit-output.txt 2>&1
+git commit -m "Mise à jour - $DATE_HEURE" > /tmp/git-output.txt 2>&1
 COMMIT_RESULT=$?
 if [ $COMMIT_RESULT -eq 0 ]; then
     COMMIT_HASH=$(git rev-parse --short HEAD)
     echo -e "${GREEN}  ${CHECK} Commit : ${BOLD}$COMMIT_HASH${NC}"
-elif grep -q "nothing to commit" /tmp/git-commit-output.txt; then
-    echo -e "${YELLOW}  ${WARNING} Rien à commiter${NC}"
+elif grep -q "nothing to commit" /tmp/git-output.txt || grep -q "rien à valider" /tmp/git-output.txt; then
+    echo -e "${YELLOW}  ${WARNING} Rien à commiter - copie de travail propre${NC}"
+elif grep -q "Your branch is up to date" /tmp/git-output.txt; then
+    echo -e "${CYAN}  ${CHECK} Branche à jour${NC}"
 else
-    cat /tmp/git-commit-output.txt | while IFS= read -r line; do echo -e "  $line"; done
+    while IFS= read -r line; do
+        [[ $line == *"Sur la branche"* ]] && continue
+        [[ $line == *"Votre branche"* ]] && continue
+        [[ $line == *"Your branch"* ]] && continue
+        [[ $line == *"rien à valider"* ]] && continue
+        [[ $line == *"nothing to commit"* ]] && continue
+        [ -z "$line" ] && continue
+        echo -e "${CYAN}     $line${NC}"
+    done < /tmp/git-output.txt
 fi
-rm -f /tmp/git-commit-output.txt
+rm -f /tmp/git-output.txt
 echo ""
 if [ -n "$REMOTE" ]; then
     echo -e "${YELLOW}${CLOUD}  Envoi vers le dépôt distant...${NC}"
-    git push origin "$BRANCH" > /tmp/git-push-output.txt 2>&1
+    git push origin "$BRANCH" > /tmp/git-output.txt 2>&1
     PUSH_EXIT=$?
     if [ $PUSH_EXIT -eq 0 ]; then
-        while IFS= read -r line; do [[ $line == *"https"* ]] && echo -e "${CYAN}  ${ARROW} $line${NC}" || echo -e "${GREEN}  ${CHECK} $line${NC}"; done < /tmp/git-push-output.txt
+        while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            [[ $line == *"https"* ]] && echo -e "${CYAN}  ${ARROW} $line${NC}" || echo -e "${GREEN}  ${CHECK} $line${NC}"
+        done < /tmp/git-output.txt
     else
-        while IFS= read -r line; do echo -e "${RED}  ${CROSS} $line${NC}"; done < /tmp/git-push-output.txt
+        while IFS= read -r line; do echo -e "${RED}  ${CROSS} $line${NC}"; done < /tmp/git-output.txt
     fi
-    rm -f /tmp/git-push-output.txt
+    rm -f /tmp/git-output.txt
 else
     echo -e "${YELLOW}  ${WARNING} Aucun remote configuré${NC}"
 fi
