@@ -1,5 +1,3 @@
-{"date":"2026-08-08T23:48:10.208Z","type":"SQL","requete":"SELECT * FROM institutions ORDER BY FIELD(niveau,\"maternelle\",\"primaire\",\"secondaire\")","statut":"exécuté","categorie":"navigation","couleur":"#8b5cf6","label":"Navigation"}
-{"date":"2026-08-08T23:48:10.215Z","type":"GET /api/classes/institutions","requete":"GET /api/classes/institutions","detail":null,"statut":"réussi"}
 {"date":"2026-08-08T23:48:10.228Z","type":"SQL","requete":"SELECT * FROM institutions ORDER BY FIELD(niveau,\"maternelle\",\"primaire\",\"secondaire\")","statut":"exécuté","categorie":"navigation","couleur":"#8b5cf6","label":"Navigation"}
 {"date":"2026-08-08T23:48:10.229Z","type":"GET /api/classes/institutions","requete":"GET /api/classes/institutions","detail":null,"statut":"réussi"}
 {"date":"2026-08-08T23:48:10.236Z","type":"SQL","requete":"SELECT * FROM institutions ORDER BY FIELD(niveau,\"maternelle\",\"primaire\",\"secondaire\")","statut":"exécuté","categorie":"navigation","couleur":"#8b5cf6","label":"Navigation"}
