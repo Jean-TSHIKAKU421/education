@@ -1,0 +1,6 @@
+const express = require('express');const router = express.Router();const Titulaire = require('../models/Titulaire');
+router.get('/', async (req, res) => { try { const data = await Titulaire.getTitulaires(); res.json({ success: true, data }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
+router.get('/professeur/:professeurId', async (req, res) => { try { const data = await Titulaire.getClassesDuProfesseur(req.params.professeurId); res.json({ success: true, data }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
+router.post('/', async (req, res) => { try { const id = await Titulaire.assigner(req.body); res.status(201).json({ success: true, id, message: 'Titulaire assigné' }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
+router.delete('/:id', async (req, res) => { try { const ok = await Titulaire.retirer(req.params.id); if (!ok) return res.status(404).json({ success: false, message: 'Titulaire non trouvé' }); res.json({ success: true, message: 'Titulaire retiré' }); } catch(e) { res.status(500).json({ success: false, error: e.message }); } });
+module.exports = router;

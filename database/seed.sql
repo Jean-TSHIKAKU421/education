@@ -18,4 +18,4 @@ ALTER TABLE administrateurs AUTO_INCREMENT = 1;
 SET FOREIGN_KEY_CHECKS = 1;
 
 INSERT INTO `administrateurs` (`username`, `password_hash`, `nom_complet`, `role`) VALUES
-('super-admin', '$2b$10$FBePQl7VckkLM6fGMRq5E.rpr01yXpsFEHXpf9cB.teUp.KWfqj1a', 'Jean TSHIKAKU', 'super_admin');
+('super-admin', '$2b$10$mbMhAmdStEfq3r5IT7PJB.0d/e.vEfySAEiDyeIWlO1svlZ230SLK', 'Jean TSHIKAKU', 'super_admin');
