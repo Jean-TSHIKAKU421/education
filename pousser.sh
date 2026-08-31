@@ -21,14 +21,14 @@ ADDED=$(git diff --cached --name-only 2>/dev/null | wc -l)
 echo ""
 echo -e "${YELLOW}${GIT}  Création du commit...${NC}"
 DATE_HEURE=$(date +"%Y-%m-%d %H:%M:%S")
-git commit -m "Mise à jour - $DATE_HEURE" > /tmp/git-output.txt 2>&1
+git commit -m "Mise à jour - $DATE_HEURE" > $PREFIX/tmp/git-output.txt 2>&1
 COMMIT_RESULT=$?
 if [ $COMMIT_RESULT -eq 0 ]; then
     COMMIT_HASH=$(git rev-parse --short HEAD)
     echo -e "${GREEN}  ${CHECK} Commit : ${BOLD}$COMMIT_HASH${NC}"
-elif grep -q "nothing to commit" /tmp/git-output.txt || grep -q "rien à valider" /tmp/git-output.txt; then
+elif grep -q "nothing to commit" $PREFIX/tmp/git-output.txt || grep -q "rien à valider" $PREFIX/tmp/git-output.txt; then
     echo -e "${YELLOW}  ${WARNING} Rien à commiter - copie de travail propre${NC}"
-elif grep -q "Your branch is up to date" /tmp/git-output.txt; then
+elif grep -q "Your branch is up to date" $PREFIX/tmp/git-output.txt; then
     echo -e "${CYAN}  ${CHECK} Branche à jour${NC}"
 else
     while IFS= read -r line; do
@@ -39,23 +39,23 @@ else
         [[ $line == *"nothing to commit"* ]] && continue
         [ -z "$line" ] && continue
         echo -e "${CYAN}     $line${NC}"
-    done < /tmp/git-output.txt
+    done < $PREFIX/tmp/git-output.txt
 fi
-rm -f /tmp/git-output.txt
+rm -f $PREFIX/tmp/git-output.txt
 echo ""
 if [ -n "$REMOTE" ]; then
     echo -e "${YELLOW}${CLOUD}  Envoi vers le dépôt distant...${NC}"
-    git push origin "$BRANCH" > /tmp/git-output.txt 2>&1
+    git push origin "$BRANCH" > $PREFIX/tmp/git-output.txt 2>&1
     PUSH_EXIT=$?
     if [ $PUSH_EXIT -eq 0 ]; then
         while IFS= read -r line; do
             [ -z "$line" ] && continue
             [[ $line == *"https"* ]] && echo -e "${CYAN}  ${ARROW} $line${NC}" || echo -e "${GREEN}  ${CHECK} $line${NC}"
-        done < /tmp/git-output.txt
+        done < $PREFIX/tmp/git-output.txt
     else
-        while IFS= read -r line; do echo -e "${RED}  ${CROSS} $line${NC}"; done < /tmp/git-output.txt
+        while IFS= read -r line; do echo -e "${RED}  ${CROSS} $line${NC}"; done < $PREFIX/tmp/git-output.txt
     fi
-    rm -f /tmp/git-output.txt
+    rm -f $PREFIX/tmp/git-output.txt
 else
     echo -e "${YELLOW}  ${WARNING} Aucun remote configuré${NC}"
 fi

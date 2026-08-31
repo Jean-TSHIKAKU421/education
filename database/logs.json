@@ -1,0 +1,14 @@
+{"date":"2026-08-31T10:18:40.021Z","type":"SQL","requete":"SELECT id, classe_id, date_inscription FROM eleves","statut":"exécuté","categorie":"navigation","couleur":"#8b5cf6","label":"Navigation"}
+{"date":"2026-08-31T10:19:21.042Z","type":"SQL","requete":"SELECT * FROM administrateurs WHERE username = 'admin'","statut":"exécuté","categorie":"navigation","couleur":"#8b5cf6","label":"Navigation"}
+{"date":"2026-08-31T10:19:21.273Z","type":"POST /api/auth/login","requete":"POST /api/auth/login","detail":null,"statut":"échoué"}
+{"date":"2026-08-31T10:19:24.626Z","type":"SQL","requete":"SELECT * FROM administrateurs WHERE username = 'admin'","statut":"exécuté","categorie":"navigation","couleur":"#8b5cf6","label":"Navigation"}
+{"date":"2026-08-31T10:19:24.811Z","type":"POST /api/auth/login","requete":"POST /api/auth/login","detail":null,"statut":"échoué"}
+{"date":"2026-08-31T10:19:37.329Z","type":"SQL","requete":"SELECT * FROM administrateurs WHERE username = 'super-admin'","statut":"exécuté","categorie":"navigation","couleur":"#8b5cf6","label":"Navigation"}
+{"date":"2026-08-31T10:19:37.336Z","type":"POST /api/auth/login","requete":"POST /api/auth/login","detail":null,"statut":"échoué"}
+{"date":"2026-08-31T10:19:44.779Z","type":"SQL","requete":"SELECT * FROM administrateurs WHERE username = 'super-admin'","statut":"exécuté","categorie":"navigation","couleur":"#8b5cf6","label":"Navigation"}
+{"date":"2026-08-31T10:19:44.784Z","type":"POST /api/auth/login","requete":"POST /api/auth/login","detail":null,"statut":"échoué"}
+{"date":"2026-08-31T10:26:26.450Z","type":"SQL","requete":"SELECT id, classe_id, date_inscription FROM eleves","statut":"exécuté","categorie":"navigation","couleur":"#8b5cf6","label":"Navigation"}
+{"date":"2026-08-31T10:26:36.329Z","type":"SQL","requete":"SELECT * FROM administrateurs WHERE username = 'admin'","statut":"exécuté","categorie":"navigation","couleur":"#8b5cf6","label":"Navigation"}
+{"date":"2026-08-31T10:26:36.558Z","type":"POST /api/auth/login","requete":"POST /api/auth/login","detail":null,"statut":"échoué"}
+{"date":"2026-08-31T10:26:46.200Z","type":"SQL","requete":"SELECT * FROM administrateurs WHERE username = 'admin'","statut":"exécuté","categorie":"navigation","couleur":"#8b5cf6","label":"Navigation"}
+{"date":"2026-08-31T10:26:46.355Z","type":"POST /api/auth/login","requete":"POST /api/auth/login","detail":null,"statut":"échoué"}

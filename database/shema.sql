@@ -33,7 +33,7 @@ CREATE TABLE `administrateurs` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 INSERT INTO `administrateurs` (`username`, `password_hash`, `nom_complet`, `role`) VALUES
-('admin', '$2b$10$k35qsPA1/tz5ayA.lumW4./DKQUi2HoZvDnWxlVZOyIx6JRYhhyRS', 'JTT', 'super_admin');
+('admin', '$2b$10$y/kmxAF3/BrapXXdkeEjXuuMfp6D54QwuwirmzGU4mXdwPrmtHJ1K', 'JTT', 'super_admin');
 
 CREATE TABLE `institutions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
