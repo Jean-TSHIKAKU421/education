@@ -16116,4 +16116,3 @@
 {"date":"2026-08-31T10:52:27.037Z","type":"GET /api/eleves/classe/6","requete":"GET /api/eleves/classe/6","detail":null,"statut":"réussi"}
 {"date":"2026-08-31T10:52:27.046Z","type":"SQL","requete":"SELECT m.*, c.nom_classe FROM matieres m LEFT JOIN classes c ON m.classe_id=c.id ORDER BY m.intitule","statut":"exécuté","categorie":"navigation","couleur":"#8b5cf6","label":"Navigation"}
 {"date":"2026-08-31T10:52:27.050Z","type":"GET /api/matieres/","requete":"GET /api/matieres","detail":null,"statut":"réussi"}
->>>>>>> 6ec3fe11d41eb4449b9ece860207f2c1b1fc0bd0
