@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@font-face {font-family: 'Plus Jakarta Sans';src: url('/assets/fonts/PlusJakartaSans-Variable.woff2') format('woff2-variations');font-weight: 200 800;font-style: normal;font-display: swap;}
 :root {
     --primary: #6366f1; --primary-dark: #4f46e5; --primary-light: rgba(99,102,241,0.15); --primary-glow: rgba(99,102,241,0.3);
     --danger: #ef4444; --danger-light: rgba(239,68,68,0.1); --danger-border: rgba(239,68,68,0.25);
