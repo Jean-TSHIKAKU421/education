@@ -207,9 +207,7 @@ body.light .badge { box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
     .dashboard-header, .sidebar, .btn-logout, .theme-toggle, .menu-toggle,
     .photo-overlay, .no-print, .actions-cell, .responsable-card .btn,
     .profil-section button, .profil-photo-wrapper,
-    #header-container, #sidebar-container {
-        display: none !important;
-    }
+    #header-container, #sidebar-container {display: none !important;}
     .main-content { padding: 0 !important; margin: 0 !important; }
     .profil-eleve-container { max-width: 100% !important; padding: 15px !important; }
     .profil-grid-top { grid-template-columns: 1fr 1fr !important; }
@@ -247,10 +245,9 @@ body.light .badge { box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
     .theme-toggle { width: 36px; height: 36px; font-size: 1.1rem; }
     .admin-avatar { width: 36px; height: 36px; }
     .menu-toggle { display: block; position: absolute; left: 0.75rem; top: 0.5rem; }
-    .main-content { padding: 1rem; }
+    .main-content { padding: 1rem; margin-top: 3rem;}
     .dashboard-header { flex-direction: column; text-align: center; gap: 0.5rem; }
     .modal { max-width: 95%; }
-    .niveau-switcher {margin-top: 4rem;}
     .profil-grid-top { grid-template-columns: 1fr; } 
     .profil-header-card { flex-direction: column; text-align: center; }
     .profil-grid { grid-template-columns: 1fr; }

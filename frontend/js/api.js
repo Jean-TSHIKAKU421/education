@@ -47,5 +47,6 @@ class API {
     static async assignerTitulaire(data) { return apiPost('/titulaires', data); }
     static async retirerTitulaire(id) { return apiDelete(`/titulaires/${id}`); }
     static async getTitulaires() { return apiGet('/titulaires'); }
+    static async getMatieresByClasse(classeId) { return apiGet(`/matieres/classe/${classeId}`); }
     static async getClassesProfesseur(professeurId) { return apiGet(`/titulaires/professeur/${professeurId}`); }
 }
